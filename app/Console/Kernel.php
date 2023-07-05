@@ -16,15 +16,15 @@ class Kernel extends ConsoleKernel
         ->hourly()
         ->withoutOverlapping(60)
         ->runInBackground()
-        ->appendOutputTo(storage_path('logs/woocommerce.log'))
-        ->emailOutputTo(env('MAIL_NOTIFICATIONS',''));
+        ->appendOutputTo(storage_path('logs/woocommerce.log'));
+        // ->emailOutputTo(env('MAIL_NOTIFICATIONS',''));
 
         $schedule->command('woo:sync-woo-product-variables')
         ->hourlyAt(20)
         ->withoutOverlapping(60)
         ->runInBackground()
-        ->appendOutputTo(storage_path('logs/woocommerce.log'))
-        ->emailOutputTo(env('MAIL_NOTIFICATIONS',''));
+        ->appendOutputTo(storage_path('logs/woocommerce.log'));
+        // ->emailOutputTo(env('MAIL_NOTIFICATIONS',''));
 
         // $schedule->command('woo:test')
         // ->everyTwoMinutes()
