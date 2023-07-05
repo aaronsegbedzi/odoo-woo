@@ -32,6 +32,8 @@ class SyncWooProducts extends Command
     public function handle()
     {
 
+        $this->info('OdooWoo Simple Products Synchronization Job - '.date("F j, Y, g:i a"));
+
         $syncImages = $this->option('images');
 
         // Get the products from Odoo.

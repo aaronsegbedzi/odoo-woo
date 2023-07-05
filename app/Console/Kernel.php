@@ -12,8 +12,19 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        $schedule->command('woo:sync')->hourly()->withoutOverlapping(30)->runInBackground()->emailOutputTo(env('MAIL_NOTIFICATIONS',''));
-        $schedule->command('woo:sync-woo-product-variables')->hourlyAt(20)->withoutOverlapping(30)->runInBackground()->emailOutputTo(env('MAIL_NOTIFICATIONS',''));;
+        $schedule->command('woo:sync')
+        ->hourly()
+        ->withoutOverlapping(60)
+        ->runInBackground()
+        ->appendOutputTo(storage_path('logs/woocommerce.log'))
+        ->emailOutputTo(env('MAIL_NOTIFICATIONS',''));
+
+        $schedule->command('woo:sync-woo-product-variables')
+        ->hourlyAt(20)
+        ->withoutOverlapping(60)
+        ->runInBackground()
+        ->appendOutputTo(storage_path('logs/woocommerce.log'))
+        ->emailOutputTo(env('MAIL_NOTIFICATIONS',''));
     }
 
     /**
