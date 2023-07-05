@@ -27,6 +27,8 @@ class OdooProduct extends Controller
     public function getProducts($limit = 1000)
     {
 
+        sleep(env('ODOO_DELAY', 1));
+
         $fields = array(
             'id',
             'default_code',
@@ -70,8 +72,6 @@ class OdooProduct extends Controller
                 );
             }
             if (count($payload) > 0) {
-                Log::info('Fetched : ' . count($payload) . ' products from Odoo.');
-                // dd($payload);
                 return $payload;
             }
         }
@@ -81,6 +81,8 @@ class OdooProduct extends Controller
 
     public function getVariableProducts($limit = 1000)
     {
+
+        sleep(env('ODOO_DELAY', 1));
 
         $fields = array(
             'id',
@@ -119,8 +121,6 @@ class OdooProduct extends Controller
                 );
             }
             if (count($payload) > 0) {
-                Log::info('Fetched : ' . count($payload) . ' variable products from Odoo.');
-                // dd($payload);
                 return $payload;
             }
         }
@@ -130,6 +130,9 @@ class OdooProduct extends Controller
   
     private function getProductVariants($id)
     {
+        
+        sleep(env('ODOO_DELAY', 1));
+
         $payload = [];
         $fields = array('id', 'product_template_variant_value_ids', 'qty_available', 'list_price', 'pricelist_item_count', 'default_code');
         $criteria = array(array('product_tmpl_id', '=', $id));
@@ -151,6 +154,9 @@ class OdooProduct extends Controller
 
     private function getVariantAttribute($id)
     {
+
+        sleep(env('ODOO_DELAY', 1));
+
         $payload = [];
         $fields = array('id', 'name', 'attribute_line_id');
         $criteria = array(array('id', '=', $id));
@@ -163,6 +169,9 @@ class OdooProduct extends Controller
     }
 
     private function getVariantCustomPrice($id) {
+        
+        sleep(env('ODOO_DELAY', 1));
+
         $fields = array('id', 'fixed_price');
         $criteria = array(array('product_id', '=', $id));
         $products = $this->client->search_read('product.pricelist.item', $criteria, $fields);
