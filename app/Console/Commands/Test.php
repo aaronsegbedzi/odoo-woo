@@ -35,7 +35,7 @@ class Test extends Command
      */
     public function handle()
     {
-
+        $this->info('OdooWoo Test Command - '.date("F j, Y, g:i a"));
     }
 
 }

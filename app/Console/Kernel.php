@@ -25,6 +25,12 @@ class Kernel extends ConsoleKernel
         ->runInBackground()
         ->appendOutputTo(storage_path('logs/woocommerce.log'))
         ->emailOutputTo(env('MAIL_NOTIFICATIONS',''));
+
+        $schedule->command('woo:test')
+        ->everyTwoMinutes()
+        ->runInBackground()
+        ->appendOutputTo(storage_path('logs/woocommerce.log'))
+        ->emailOutputTo(env('MAIL_NOTIFICATIONS',''));
     }
 
     /**
