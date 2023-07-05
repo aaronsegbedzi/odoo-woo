@@ -18,6 +18,26 @@ class EventServiceProvider extends ServiceProvider
         Registered::class => [
             SendEmailVerificationNotification::class,
         ],
+
+        'Illuminate\Console\Events\ScheduledTaskStarting' => [
+            'App\Listeners\LogScheduledTaskStarting',
+        ],
+     
+        'Illuminate\Console\Events\ScheduledTaskFinished' => [
+            'App\Listeners\LogScheduledTaskFinished',
+        ],
+     
+        'Illuminate\Console\Events\ScheduledBackgroundTaskFinished' => [
+            'App\Listeners\LogScheduledBackgroundTaskFinished',
+        ],
+     
+        'Illuminate\Console\Events\ScheduledTaskSkipped' => [
+            'App\Listeners\LogScheduledTaskSkipped',
+        ],
+     
+        'Illuminate\Console\Events\ScheduledTaskFailed' => [
+            'App\Listeners\LogScheduledTaskFailed',
+        ]
     ];
 
     /**
