@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Log;
 
 class WooCategory extends Controller
 {
-
     public function syncCategory($OdooCategories)
     {
 
@@ -19,15 +18,11 @@ class WooCategory extends Controller
 
             $WooCategories = Category::all(['per_page' => 100]);
 
-            // dd($WooCategories);
-
             foreach ($OdooCategories as $OdooCategory) {
 
                 $OdooCategoryExists = false;
 
                 foreach ($WooCategories as $WooCategory) {
-
-                    // dd($WooCategory->name);
 
                     if ($OdooCategory[1] == $WooCategory->name) {
                         $OdooCategoryExists = true;

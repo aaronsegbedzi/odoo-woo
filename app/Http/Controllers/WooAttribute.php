@@ -11,7 +11,7 @@ class WooAttribute extends Controller
 {
     public function getAttributes()
     {
-        $next_page = null;
+        $next_page = 1;
         $attributes_ = [];
         $payload = [];
 

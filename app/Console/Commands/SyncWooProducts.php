@@ -31,9 +31,7 @@ class SyncWooProducts extends Command
      */
     public function handle()
     {
-
         $this->info('OdooWoo Simple Products Synchronization Job - '.date("F j, Y, g:i a"));
-
         $syncImages = $this->option('images');
 
         // Get the products from Odoo.
@@ -85,35 +83,35 @@ class SyncWooProducts extends Command
         //CATEGORIES////////////////////////////////////////////////////////////////////////////////////////
 
         //BRANDS///////////////////////////////////////////////////////////////////////////////////////////
-        // Get the Brand from Odoo.
-        $OdooBrands = [];
-        foreach ($OdooProducts as $OdooProduct) {
-            if ($OdooProduct['brand']) {
-                $OdooBrands[] = $OdooProduct['brand'];
+            // Get the Brand from Odoo.
+            $OdooBrands = [];
+            foreach ($OdooProducts as $OdooProduct) {
+                if ($OdooProduct['brand']) {
+                    $OdooBrands[] = $OdooProduct['brand'];
+                }
             }
-        }
-        $OdooBrands = array_values(array_map("unserialize", array_unique(array_map("serialize", $OdooBrands))));
-        $this->info('Odoo Brands Fetched: ' . count($OdooBrands));
+            $OdooBrands = array_values(array_map("unserialize", array_unique(array_map("serialize", $OdooBrands))));
+            $this->info('Odoo Brands Fetched: ' . count($OdooBrands));
 
-        // Get the Brand from WooCommerce.
-        $WooAttribute = new WooAttribute();
-        $WooAttributeTerms = $WooAttribute->getAttributeTerms(env('WOOCOMMERCE_BRAND_ID', ''));
-        $this->info('Woo Brands Fetched: ' . count($WooAttributeTerms));
-
-        // Create Categories if not exist in WooCommerce.
-        $array1_ids = $OdooBrands;
-        $array2_ids = array_column($WooAttributeTerms, 1);
-        $CreateTerms = array_diff($array1_ids, $array2_ids);
-        if (count($CreateTerms) > 0) {
-            $this->info('Creating ' . count($CreateTerms) . ' Brands in Woo.');
-            foreach ($CreateTerms as $CreateTerm) {
-                $WooAttribute->createAttributeTerm(env('WOOCOMMERCE_BRAND_ID', ''), $CreateTerm);
-                $this->info('Created Brand: ' . $CreateTerm);
-            }
             // Get the Brand from WooCommerce.
             $WooAttribute = new WooAttribute();
             $WooAttributeTerms = $WooAttribute->getAttributeTerms(env('WOOCOMMERCE_BRAND_ID', ''));
-        }
+            $this->info('Woo Brands Fetched: ' . count($WooAttributeTerms));
+
+            // Create Categories if not exist in WooCommerce.
+            $array1_ids = $OdooBrands;
+            $array2_ids = array_column($WooAttributeTerms, 1);
+            $CreateTerms = array_diff($array1_ids, $array2_ids);
+            if (count($CreateTerms) > 0) {
+                $this->info('Creating ' . count($CreateTerms) . ' Brands in Woo.');
+                foreach ($CreateTerms as $CreateTerm) {
+                    $WooAttribute->createAttributeTerm(env('WOOCOMMERCE_BRAND_ID', ''), $CreateTerm);
+                    $this->info('Created Brand: ' . $CreateTerm);
+                }
+                // Get the Brand from WooCommerce.
+                $WooAttribute = new WooAttribute();
+                $WooAttributeTerms = $WooAttribute->getAttributeTerms(env('WOOCOMMERCE_BRAND_ID', ''));
+            }
         //BRANDS//////////////////////////////////////////////////////////////////////////////////////////
 
         $CreateProducts = [];
@@ -126,6 +124,7 @@ class SyncWooProducts extends Command
                     $OdooProduct['woo_id'] = $WooProduct->id;
                     $UpdateProducts[] = $OdooProduct;
                     $update = true;
+                    break;
                 }
             }
             if ($update == false) {
@@ -200,13 +199,9 @@ class SyncWooProducts extends Command
             $i = 1;
             $chunks = array_chunk($BatchCreate, $batchSize);
             foreach ($chunks as $batch) {
-
                 $batch = Product::batch(['create' => $batch]);
-
                 $this->info('Create Batch ' . $i . ' Completed');
-
                 $i++;
-
                 sleep(5);
             }
             $this->info('Product Create Job Completed');
@@ -223,7 +218,6 @@ class SyncWooProducts extends Command
                         break;
                     }
                 }
-
                 $searchValue = $UpdateProduct['brand'];
                 $index2 = null;
                 foreach ($WooAttributeTerms as $key => $element) {
@@ -232,7 +226,6 @@ class SyncWooProducts extends Command
                         break;
                     }
                 }
-
                 if ($syncImages) {
                     $BatchUpdate[] = [
                         'id' => $UpdateProduct['woo_id'],
@@ -315,7 +308,6 @@ class SyncWooProducts extends Command
             }
             $this->info('Product Update Job Completed');
         }
-
         $this->info('OdooWoo Synchronization Completed. Have Fun :)');
     }
 }

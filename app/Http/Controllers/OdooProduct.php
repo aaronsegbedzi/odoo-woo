@@ -2,9 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use OdooClient\Client;
-use Illuminate\Support\Facades\Log;
 
 class OdooProduct extends Controller
 {
@@ -45,7 +43,7 @@ class OdooProduct extends Controller
         );
 
         $criteria = array(
-            // array('id', '=', 1837),
+            array('x_brand', '!=', false),
             array('image_1920', '!=', false),
             array('default_code', '!=', ''),
             array('available_in_pos', '=', true),
@@ -99,6 +97,7 @@ class OdooProduct extends Controller
 
         $criteria = array(
             array('priority', '=', 1),
+            array('x_brand', '!=', false),
             array('image_1920', '!=', false),
             array('available_in_pos', '=', true),
             array('has_configurable_attributes', '=', true)
