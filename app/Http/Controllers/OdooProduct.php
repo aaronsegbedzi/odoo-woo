@@ -7,6 +7,7 @@ use OdooClient\Client;
 class OdooProduct extends Controller
 {
     protected $client;
+    protected $delay;
 
     public function __construct()
     {
@@ -20,12 +21,14 @@ class OdooProduct extends Controller
         $password = env('ODOO_PASSWORD', '');
 
         $this->client = new Client($url, $database, $user, $password);
+
+        $this->delay = env('ODOO_DELAY', 1);
     }
 
     public function getProducts($limit = 1000)
     {
 
-        sleep(env('ODOO_DELAY', 1));
+        sleep($this->delay);
 
         $fields = array(
             'id',
@@ -59,7 +62,7 @@ class OdooProduct extends Controller
                     'name' => $product['name'],
                     'sku' => $product['default_code'],
                     'price' => $product['list_price'],
-                    'brand' => $product['x_brand'] == true ? $product['x_brand'] : 'None',
+                    'brand' => $product['x_brand'] == true ? trim($product['x_brand']) : 'None',
                     'qty' => $product['qty_available'],
                     'cat' => $product['categ_id'],
                     'image' => env('ODOO_IMG_URL', '') . '/' . $product['id'] . '.jpg',
@@ -80,7 +83,7 @@ class OdooProduct extends Controller
     public function getVariableProducts($limit = 1000)
     {
 
-        sleep(env('ODOO_DELAY', 1));
+        sleep($this->delay);
 
         $fields = array(
             'id',
@@ -110,7 +113,7 @@ class OdooProduct extends Controller
                 $payload[] = array(
                     'id' => $product['id'],
                     'name' => $product['name'],
-                    'brand' => $product['x_brand'] == true ? $product['x_brand'] : 'None',
+                    'brand' => $product['x_brand'] == true ? trim($product['x_brand']) : 'None',
                     'cat' => $product['categ_id'],
                     'image' => env('ODOO_IMG_URL', '') . '/' . $product['id'] . '.jpg',
                     'description' => $product['description_sale'] == true ? $product['description_sale'] : '',
@@ -130,7 +133,7 @@ class OdooProduct extends Controller
     private function getProductVariants($id)
     {
         
-        sleep(env('ODOO_DELAY', 1));
+        sleep($this->delay);
 
         $payload = [];
         $fields = array('id', 'product_template_variant_value_ids', 'qty_available', 'list_price', 'pricelist_item_count', 'default_code');
@@ -154,7 +157,7 @@ class OdooProduct extends Controller
     private function getVariantAttribute($id)
     {
 
-        sleep(env('ODOO_DELAY', 1));
+        sleep($this->delay);
 
         $payload = [];
         $fields = array('id', 'name', 'attribute_line_id');
@@ -169,7 +172,7 @@ class OdooProduct extends Controller
 
     private function getVariantCustomPrice($id) {
         
-        sleep(env('ODOO_DELAY', 1));
+        sleep($this->delay);
 
         $fields = array('id', 'fixed_price');
         $criteria = array(array('product_id', '=', $id));

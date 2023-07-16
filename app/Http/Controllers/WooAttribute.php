@@ -51,7 +51,7 @@ class WooAttribute extends Controller
 
         if (count($payload) > 0) {
             foreach ($payload as $attribute) {
-                $attributes_[] = array($attribute->id, html_entity_decode($attribute->name));
+                $attributes_[] = array($attribute->id, html_entity_decode(trim($attribute->name)));
             }
             return $attributes_;
         }

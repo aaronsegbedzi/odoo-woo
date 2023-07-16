@@ -13,6 +13,7 @@ use Codexshaper\WooCommerce\Facades\Attribute;
 use App\Http\Controllers\WooAttribute;
 use Codexshaper\WooCommerce\Facades\Term;
 use Illuminate\Support\Facades\Mail;
+use App\Http\Controllers\OdooProduct;
 
 class Test extends Command
 {
@@ -35,7 +36,6 @@ class Test extends Command
      */
     public function handle()
     {
-        $this->info('OdooWoo Test Command - '.date("F j, Y, g:i a"));
+        $this->info('OdooWoo Test Command - ' . date("F j, Y, g:i a"));
     }
-
 }
