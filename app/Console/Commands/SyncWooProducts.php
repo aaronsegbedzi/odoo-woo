@@ -36,7 +36,7 @@ class SyncWooProducts extends Command
 
         // Get the products from Odoo.
         $OdooProduct = new OdooProduct();
-        $OdooProducts = $OdooProduct->getProducts();
+        $OdooProducts = $OdooProduct->getProducts(80);
         $this->info('Odoo Products Fetched: ' . count($OdooProducts));
 
         // Get the products from WooCommerce.
@@ -167,7 +167,7 @@ class SyncWooProducts extends Command
                     'stock_quantity' => $CreateProduct['qty'] > 0 ? $CreateProduct['qty'] : 0,
                     'stock_status' => $CreateProduct['qty'] > 0 ? 'instock' : 'outofstock',
                     'description' => $CreateProduct['description'] . "\n\n<b>DIRECTIONS:</b>\n" . $CreateProduct['directions'] . "\n\n<b>INGREDIENTS:</b>\n" . $CreateProduct['ingredients'],
-                    'short_description' => $CreateProduct['description'],
+                    'short_description' => $this->truncateString($CreateProduct['description']),
                     'categories' => [
                         [
                             'id' => $Categories[$index][2]
@@ -226,7 +226,7 @@ class SyncWooProducts extends Command
                         break;
                     }
                 }
-                if ($syncImages) {
+                if ($syncImages || date("Y-m-d") === date("Y-m-d", strtotime($UpdateProduct['updated']))) {
                     $BatchUpdate[] = [
                         'id' => $UpdateProduct['woo_id'],
                         'name' => $UpdateProduct['name'],
@@ -236,7 +236,7 @@ class SyncWooProducts extends Command
                         'stock_quantity' => $UpdateProduct['qty'] > 0 ? $UpdateProduct['qty'] : 0,
                         'stock_status' => $UpdateProduct['qty'] > 0 ? 'instock' : 'outofstock',
                         'description' => $UpdateProduct['description'] . "\n\n<b>DIRECTIONS:</b>\n" . $UpdateProduct['directions'] . "\n\n<b>INGREDIENTS:</b>\n" . $UpdateProduct['ingredients'],
-                        'short_description' => $UpdateProduct['description'],
+                        'short_description' => $this->truncateString($UpdateProduct['description']),
                         'categories' => [
                             [
                                 'id' => $Categories[$index][2]
@@ -273,7 +273,7 @@ class SyncWooProducts extends Command
                         'stock_quantity' => $UpdateProduct['qty'] > 0 ? $UpdateProduct['qty'] : 0,
                         'stock_status' => $UpdateProduct['qty'] > 0 ? 'instock' : 'outofstock',
                         'description' => $UpdateProduct['description'] . "\n\n<b>DIRECTIONS:</b>\n" . $UpdateProduct['directions'] . "\n\n<b>INGREDIENTS:</b>\n" . $UpdateProduct['ingredients'],
-                        'short_description' => $UpdateProduct['description'],
+                        'short_description' => $this->truncateString($UpdateProduct['description']),
                         'categories' => [
                             [
                                 'id' => $Categories[$index][2]
@@ -309,5 +309,15 @@ class SyncWooProducts extends Command
             $this->info('Product Update Job Completed');
         }
         $this->info('OdooWoo Synchronization Completed. Have Fun :)');
+    }
+
+    private function truncateString($inputString, $maxLength = 250) {
+        if (strlen($inputString) <= $maxLength) {
+            return $inputString;
+        } else {
+            $trimmedString = substr($inputString, 0, $maxLength);
+            $trimmedString = rtrim($trimmedString); // Remove any trailing spaces
+            return $trimmedString . '...';
+        }
     }
 }

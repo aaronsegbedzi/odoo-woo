@@ -42,7 +42,8 @@ class OdooProduct extends Controller
             'product_variant_ids',
             'x_ingredients',
             'x_directions',
-            'description_sale'
+            'description_sale',
+            'write_date'
         );
 
         $criteria = array(
@@ -59,6 +60,7 @@ class OdooProduct extends Controller
             foreach ($products as $product) {
                 $payload[] = array(
                     'id' => $product['id'],
+                    'updated' => $product['write_date'],
                     'name' => $product['name'],
                     'sku' => $product['default_code'],
                     'price' => $product['list_price'],
