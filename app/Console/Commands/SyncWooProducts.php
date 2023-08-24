@@ -316,7 +316,16 @@ class SyncWooProducts extends Command
             return $inputString;
         } else {
             $trimmedString = substr($inputString, 0, $maxLength);
-            $trimmedString = rtrim($trimmedString); // Remove any trailing spaces
+            
+            // Find the position of the last sentence ending punctuation (., !, ?) within the trimmed string
+            $lastSentenceEnd = max(strrpos($trimmedString, '.'), strrpos($trimmedString, '!'), strrpos($trimmedString, '?'));
+            
+            if ($lastSentenceEnd !== false) {
+                $trimmedString = substr($trimmedString, 0, $lastSentenceEnd + 1); // Include the sentence-ending punctuation
+            } else {
+                $trimmedString = rtrim($trimmedString); // Remove any trailing spaces
+            }
+            
             return $trimmedString . '...';
         }
     }
