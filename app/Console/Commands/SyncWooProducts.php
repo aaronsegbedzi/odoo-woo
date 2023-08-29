@@ -207,7 +207,7 @@ class SyncWooProducts extends Command
                     $this->info('FAILED Batch ' . $i . ' - REASON: ' . $e->getMessage());
                 }
                 $i++;
-                sleep(70);
+                sleep(60);
             }
             $this->info('Product Create Job Completed');
         }
@@ -314,7 +314,7 @@ class SyncWooProducts extends Command
                     $this->info('FAILED Batch ' . $i . ' - REASON: ' . $e->getMessage());
                 }
                 $i++;
-                sleep(70);
+                sleep(60);
             }
             $this->info('Product Update Job Completed');
         }

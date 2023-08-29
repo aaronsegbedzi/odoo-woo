@@ -22,7 +22,7 @@ class Kernel extends ConsoleKernel
         ->hourlyAt(30)
         ->withoutOverlapping(60)
         ->runInBackground()
-        ->emailOutputOnFailure(env('MAIL_NOTIFICATIONS',''));
+        ->sendOutputTo(env('MAIL_NOTIFICATIONS',''));
     }
 
     /**
