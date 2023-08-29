@@ -178,7 +178,6 @@ class SyncWooProductVariables extends Command
             $i = 1;
             $this->info('Product Create Job Initiated');
             foreach ($CreateProducts as $Product) {
-
                 $searchValue = $Product['cat'][0];
                 $index = null;
                 foreach ($Categories as $key => $element) {
@@ -277,7 +276,7 @@ class SyncWooProductVariables extends Command
                     ];
                 }
 
-                $batch = Variation::batch($product['id'], ['create' => $variants]);
+                $_batch = Variation::batch($product['id'], ['create' => $variants]);
 
                 sleep(5);
 
@@ -489,7 +488,7 @@ class SyncWooProductVariables extends Command
                     }
                 }
 
-                $batch = Variation::batch($Product['woo_id'], ['create' => $BatchCreateVariants, 'update' => $BatchUpdateVariants]);
+                $_batch = Variation::batch($Product['woo_id'], ['create' => $BatchCreateVariants, 'update' => $BatchUpdateVariants]);
 
                 sleep(5);
 
@@ -517,23 +516,65 @@ class SyncWooProductVariables extends Command
         return $id;
     }
 
-    private function truncateString($inputString, $maxLength = 250)
-    {
-        if (strlen($inputString) <= $maxLength) {
-            return $inputString;
-        } else {
-            $trimmedString = substr($inputString, 0, $maxLength);
-            
-            // Find the position of the last sentence ending punctuation (., !, ?) within the trimmed string
-            $lastSentenceEnd = max(strrpos($trimmedString, '.'), strrpos($trimmedString, '!'), strrpos($trimmedString, '?'));
-            
-            if ($lastSentenceEnd !== false) {
-                $trimmedString = substr($trimmedString, 0, $lastSentenceEnd + 1); // Include the sentence-ending punctuation
-            } else {
-                $trimmedString = rtrim($trimmedString); // Remove any trailing spaces
+    private function cutToEndOfLastSentence($text) {
+        // Find the last occurrence of a period, question mark, or exclamation mark
+        $lastSentenceEnd = max(strrpos($text, '.'), strrpos($text, '?'), strrpos($text, '!'));
+    
+        // If no valid sentence end is found, return the original text
+        if ($lastSentenceEnd === false) {
+            return $text;
+        }
+    
+        // Cut the text to the end of the last sentence
+        $cutText = substr($text, 0, $lastSentenceEnd + 1); // Include the sentence end punctuation
+    
+        return $cutText;
+    }
+
+    private function trimSentences($inputText) {
+        // Split the input text into paragraphs
+        $paragraphs = preg_split('/\n\s*\n/', $inputText);
+    
+        // Process each paragraph
+        foreach ($paragraphs as &$paragraph) {
+            // Split the paragraph into sentences
+            $sentences = preg_split('/(?<=[.!?])\s+(?=[A-Z])/', $paragraph);
+    
+            // Trim each sentence
+            foreach ($sentences as &$sentence) {
+                $sentence = trim($sentence);
             }
-            
-            return $trimmedString . '...';
+    
+            // Join the sentences back into the paragraph
+            $paragraph = implode(' ', $sentences);
+        }
+    
+        // Join the paragraphs back into the text
+        $cleanedText = implode("\n\n", $paragraphs);
+    
+        return $cleanedText;
+    }
+
+    private function truncateString($inputText, $limit = 250) {
+
+        $inputText = preg_replace('/[^\S\r\n]+/', ' ', $inputText);
+        $inputText = preg_replace('/^(?=[^\s\r\n])\s+/m', '', $inputText);
+        $paragraphs = preg_split('/\n\s*\n/', $inputText, 2, PREG_SPLIT_NO_EMPTY);
+        
+        // Check if there's at least one paragraph
+        if (empty($paragraphs)) {
+            return '';
+        }
+        
+        // Get the first paragraph
+        $firstParagraph = $this->trimSentences($paragraphs[0]);
+        
+        // Check the length of the first paragraph
+        if (strlen($firstParagraph) <= $limit) {
+            return $firstParagraph;
+        } else {
+            // Shorten the text to 250 characters
+            return $this->cutToEndOfLastSentence(substr($firstParagraph, 0, $limit));
         }
     }
 }

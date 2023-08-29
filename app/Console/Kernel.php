@@ -16,10 +16,10 @@ class Kernel extends ConsoleKernel
         ->hourly()
         ->withoutOverlapping(60)
         ->runInBackground()
-        ->emailOutputOnFailure(env('MAIL_NOTIFICATIONS',''));
+        ->sendOutputTo(env('MAIL_NOTIFICATIONS',''));
 
         $schedule->command('woo:sync-woo-product-variables')
-        ->hourlyAt(20)
+        ->hourlyAt(30)
         ->withoutOverlapping(60)
         ->runInBackground()
         ->emailOutputOnFailure(env('MAIL_NOTIFICATIONS',''));
