@@ -253,7 +253,7 @@ class SyncWooProductVariables extends Command
                 }
 
 
-                sleep(15);
+                sleep(5);
 
                 $variants = [];
 
@@ -289,7 +289,7 @@ class SyncWooProductVariables extends Command
                     break;
                 }
 
-                sleep(15);
+                sleep(5);
 
                 $this->info('Created Product ' . $i . '/' . $total);
 
@@ -402,7 +402,7 @@ class SyncWooProductVariables extends Command
                     break;
                 }
 
-                sleep(15);
+                sleep(5);
 
                 $WooProduct = new WooProduct();
                 $WooVariations = $WooProduct->getVariations($Product['woo_id']);
@@ -511,7 +511,7 @@ class SyncWooProductVariables extends Command
                     break;
                 }
 
-                sleep(15);
+                sleep(5);
 
                 $this->info('Updated Product ' . $i . '/' . $total);
 
