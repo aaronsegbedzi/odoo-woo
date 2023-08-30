@@ -207,6 +207,7 @@ class SyncWooProductVariables extends Command
 
                 $data = [
                     'name' => $Product['name'],
+                    'status' => 'publish',
                     'type' => 'variable',
                     'description' => $this->formatDescription($Product['description'], $Product['directions'],$Product['ingredients']),
                     'short_description' => $this->truncateString($Product['description']),
@@ -259,6 +260,7 @@ class SyncWooProductVariables extends Command
 
                 foreach ($Product['variants'] as $Variant) {
                     $variants[] = [
+                        'status' => 'publish',
                         'regular_price' => (string) $Variant['price'],
                         'stock_status' => $Variant['qty'] > 0 ? 'instock' : 'outofstock',
                         'stock_quantity' => $Variant['qty'] > 0 ? $Variant['qty'] : 0,
@@ -333,6 +335,7 @@ class SyncWooProductVariables extends Command
                 if ($syncImages) {
                     $data = [
                         'name' => $Product['name'],
+                        'status' => 'publish',
                         'type' => 'variable',
                         'description' => $this->formatDescription($Product['description'], $Product['directions'],$Product['ingredients']),
                         'short_description' => $this->truncateString($Product['description']),
@@ -367,6 +370,7 @@ class SyncWooProductVariables extends Command
                 } else {
                     $data = [
                         'name' => $Product['name'],
+                        'status' => 'publish',
                         'type' => 'variable',
                         'description' => $this->formatDescription($Product['description'], $Product['directions'],$Product['ingredients']),
                         'short_description' => $this->truncateString($Product['description']),
@@ -432,6 +436,7 @@ class SyncWooProductVariables extends Command
                     foreach ($CreateVariants as $Variant) {
                         if ($syncImages) {
                             $BatchCreateVariants[] = [
+                                'status' => 'publish',
                                 'regular_price' => (string) $Variant['price'],
                                 'stock_status' => $Variant['qty'] > 0 ? 'instock' : 'outofstock',
                                 'stock_quantity' => $Variant['qty'] > 0 ? $Variant['qty'] : 0,
@@ -455,6 +460,7 @@ class SyncWooProductVariables extends Command
                             ];
                         } else {
                             $BatchCreateVariants[] = [
+                                'status' => 'publish',
                                 'regular_price' => (string) $Variant['price'],
                                 'stock_status' => $Variant['qty'] > 0 ? 'instock' : 'outofstock',
                                 'stock_quantity' => $Variant['qty'] > 0 ? $Variant['qty'] : 0,
@@ -482,6 +488,7 @@ class SyncWooProductVariables extends Command
                         if ($syncImages) {
                             $BatchUpdateVariants[] = [
                                 'id' => $Variant['woo_id'],
+                                'status' => 'publish',
                                 'regular_price' => (string) $Variant['price'],
                                 'stock_status' => $Variant['qty'] > 0 ? 'instock' : 'outofstock',
                                 'stock_quantity' => $Variant['qty'] > 0 ? $Variant['qty'] : 0,
@@ -494,6 +501,7 @@ class SyncWooProductVariables extends Command
                         } else {
                             $BatchUpdateVariants[] = [
                                 'id' => $Variant['woo_id'],
+                                'status' => 'publish',
                                 'regular_price' => (string) $Variant['price'],
                                 'stock_status' => $Variant['qty'] > 0 ? 'instock' : 'outofstock',
                                 'stock_quantity' => $Variant['qty'] > 0 ? $Variant['qty'] : 0,

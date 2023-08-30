@@ -160,6 +160,7 @@ class SyncWooProducts extends Command
 
                 $BatchCreate[] = [
                     'name' => $CreateProduct['name'],
+                    'status' => 'publish',
                     'type' => 'simple',
                     'regular_price' => (string) $CreateProduct['price'],
                     'sku' => $CreateProduct['sku'],
@@ -235,6 +236,7 @@ class SyncWooProducts extends Command
                     $BatchUpdate[] = [
                         'id' => $UpdateProduct['woo_id'],
                         'name' => $UpdateProduct['name'],
+                        'status' => 'publish',
                         'type' => 'simple',
                         'regular_price' => (string) $UpdateProduct['price'],
                         'manage_stock' => true,
@@ -272,6 +274,7 @@ class SyncWooProducts extends Command
                     $BatchUpdate[] = [
                         'id' => $UpdateProduct['woo_id'],
                         'name' => $UpdateProduct['name'],
+                        'status' => 'publish',
                         'type' => 'simple',
                         'regular_price' => (string) $UpdateProduct['price'],
                         'manage_stock' => true,
