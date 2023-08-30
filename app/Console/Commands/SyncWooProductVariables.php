@@ -493,7 +493,6 @@ class SyncWooProductVariables extends Command
                                 'stock_status' => $Variant['qty'] > 0 ? 'instock' : 'outofstock',
                                 'stock_quantity' => $Variant['qty'] > 0 ? $Variant['qty'] : 0,
                                 'manage_stock' => true,
-                                'sku' => $Variant['sku'],
                                 'image' => [
                                     'src' => $Variant['image']
                                 ]
@@ -505,8 +504,7 @@ class SyncWooProductVariables extends Command
                                 'regular_price' => (string) $Variant['price'],
                                 'stock_status' => $Variant['qty'] > 0 ? 'instock' : 'outofstock',
                                 'stock_quantity' => $Variant['qty'] > 0 ? $Variant['qty'] : 0,
-                                'manage_stock' => true,
-                                'sku' => $Variant['sku']
+                                'manage_stock' => true
                             ];
                         }
                     }
