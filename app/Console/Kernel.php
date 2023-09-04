@@ -12,17 +12,28 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        $schedule->command('woo:sync')
-        ->hourly()
-        ->withoutOverlapping(60)
-        ->runInBackground()
-        ->emailOutputTo(env('MAIL_NOTIFICATIONS',''));
+        if (config('app.odoowoo_sync_simple')) {
+            $schedule->command('woo:sync')
+            ->hourly()
+            ->withoutOverlapping(60)
+            ->runInBackground()
+            ->emailOutputTo(env('MAIL_NOTIFICATIONS',''));
+        }
 
-        $schedule->command('woo:sync-woo-product-variables')
-        ->hourlyAt(30)
-        ->withoutOverlapping(60)
-        ->runInBackground()
-        ->emailOutputTo(env('MAIL_NOTIFICATIONS',''));
+        if (config('app.odoowoo_sync_variable')) {
+            $schedule->command('woo:sync-woo-product-variables')
+            ->hourlyAt(30)
+            ->withoutOverlapping(60)
+            ->runInBackground()
+            ->emailOutputTo(env('MAIL_NOTIFICATIONS',''));
+        }
+
+        if (config('app.odoowoo_pos_sms')) {
+            $schedule->command('odoo:pos-daily-report --recipients='.config('app.odoowoo_pos_sms_recipients').' --date='.date("Y-m-d"))
+            ->dailyAt(config('app.odoowoo_pos_sms_time'))
+            ->runInBackground()
+            ->emailOutputTo(env('MAIL_NOTIFICATIONS',''));
+        }
     }
 
     /**

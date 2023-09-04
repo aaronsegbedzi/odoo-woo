@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Console\Command;
 use App\Http\Controllers\OdooProduct;
 use App\Http\Controllers\WooCategory;
@@ -33,16 +34,17 @@ class SyncWooProducts extends Command
     {
         $this->info('OdooWoo Simple Products Synchronization Job - ' . date("F j, Y, g:i a"));
         $syncImages = $this->option('images');
+        $controller = new Controller();
 
         // Get the products from Odoo.
         $OdooProduct = new OdooProduct();
         $OdooProducts = $OdooProduct->getProducts();
-        $this->info('Odoo Products Fetched: ' . count($OdooProducts));
+        $this->info('Odoo Simple Products Fetched: ' . count($OdooProducts));
 
         // Get the products from WooCommerce.
         $WooProduct = new WooProduct();
         $WooProducts = $WooProduct->getProducts();
-        $this->info('Woo Products Fetched: ' . count($WooProducts));
+        $this->info('Woo Simple Products Fetched: ' . count($WooProducts));
 
         //CATEGORIES/////////////////////////////////////////////////////////////////////////////////////////
         // Get the categories from Odoo.
@@ -132,13 +134,15 @@ class SyncWooProducts extends Command
             }
         }
 
-        $this->info('No. Product To Create: ' . count($CreateProducts) . ' | No. Product To Update: ' . count($UpdateProducts));
+        $this->info('No. Products To Create: ' . count($CreateProducts));
+        $this->info('No. Products To Update: ' . count($UpdateProducts));
 
         $BatchCreate = [];
         $BatchUpdate = [];
 
         if (count($CreateProducts) > 0) {
-            $this->info('Product Create Job Initiated');
+            $j = 0;
+            $this->info('Products Create Job Initiated');
             foreach ($CreateProducts as $CreateProduct) {
                 $searchValue = $CreateProduct['cat'][0];
                 $index = null;
@@ -158,7 +162,7 @@ class SyncWooProducts extends Command
                     }
                 }
 
-                $BatchCreate[] = [
+                $BatchCreate[$j] = [
                     'name' => $CreateProduct['name'],
                     'status' => 'publish',
                     'type' => 'simple',
@@ -167,7 +171,7 @@ class SyncWooProducts extends Command
                     'manage_stock' => true,
                     'stock_quantity' => $CreateProduct['qty'] > 0 ? $CreateProduct['qty'] : 0,
                     'stock_status' => $CreateProduct['qty'] > 0 ? 'instock' : 'outofstock',
-                    'description' => $this->formatDescription($CreateProduct['description'], $CreateProduct['directions'],$CreateProduct['ingredients']),
+                    'description' => $this->formatDescription($CreateProduct['description'], $CreateProduct['directions'], $CreateProduct['ingredients']),
                     'short_description' => $this->truncateString($CreateProduct['description']),
                     'categories' => [
                         [
@@ -195,8 +199,19 @@ class SyncWooProducts extends Command
                         ]
                     ]
                 ];
+
+                if ($controller->mycredEnabled()) {
+                    $BatchCreate[$j]['meta_data'][] = array(
+                        'key' => 'mycred_reward',
+                        'value' => array(
+                            'mycred_default' =>  $controller->mycredDefaultPoints()
+                        )
+                    );
+                }
+
+                $j++;
             }
-            $batchSize = 50;
+            $batchSize = $controller->wooProductsPerBatch();
             $i = 1;
             $chunks = array_chunk($BatchCreate, $batchSize);
             foreach ($chunks as $chunk) {
@@ -208,12 +223,13 @@ class SyncWooProducts extends Command
                     $this->info('FAILED Batch ' . $i . ' - REASON: ' . $e->getMessage());
                 }
                 $i++;
-                sleep(60);
+                sleep($controller->wooSleepSeconds());
             }
-            $this->info('Product Create Job Completed');
+            $this->info('Products Create Job Completed');
         }
 
         if (count($UpdateProducts) > 0) {
+            $j = 0;
             $this->info('Product Update Job Initiated');
             foreach ($UpdateProducts as $UpdateProduct) {
                 $searchValue = $UpdateProduct['cat'][0];
@@ -224,6 +240,7 @@ class SyncWooProducts extends Command
                         break;
                     }
                 }
+
                 $searchValue = $UpdateProduct['brand'];
                 $index2 = null;
                 foreach ($WooAttributeTerms as $key => $element) {
@@ -232,8 +249,9 @@ class SyncWooProducts extends Command
                         break;
                     }
                 }
+
                 if ($syncImages || date("Y-m-d") === date("Y-m-d", strtotime($UpdateProduct['updated']))) {
-                    $BatchUpdate[] = [
+                    $BatchUpdate[$j] = [
                         'id' => $UpdateProduct['woo_id'],
                         'name' => $UpdateProduct['name'],
                         'status' => 'publish',
@@ -242,7 +260,7 @@ class SyncWooProducts extends Command
                         'manage_stock' => true,
                         'stock_quantity' => $UpdateProduct['qty'] > 0 ? $UpdateProduct['qty'] : 0,
                         'stock_status' => $UpdateProduct['qty'] > 0 ? 'instock' : 'outofstock',
-                        'description' => $this->formatDescription($UpdateProduct['description'], $UpdateProduct['directions'],$UpdateProduct['ingredients']),
+                        'description' => $this->formatDescription($UpdateProduct['description'], $UpdateProduct['directions'], $UpdateProduct['ingredients']),
                         'short_description' => $this->truncateString($UpdateProduct['description']),
                         'categories' => [
                             [
@@ -271,7 +289,7 @@ class SyncWooProducts extends Command
                         ]
                     ];
                 } else {
-                    $BatchUpdate[] = [
+                    $BatchUpdate[$j] = [
                         'id' => $UpdateProduct['woo_id'],
                         'name' => $UpdateProduct['name'],
                         'status' => 'publish',
@@ -280,7 +298,7 @@ class SyncWooProducts extends Command
                         'manage_stock' => true,
                         'stock_quantity' => $UpdateProduct['qty'] > 0 ? $UpdateProduct['qty'] : 0,
                         'stock_status' => $UpdateProduct['qty'] > 0 ? 'instock' : 'outofstock',
-                        'description' => $this->formatDescription($UpdateProduct['description'], $UpdateProduct['directions'],$UpdateProduct['ingredients']),
+                        'description' => $this->formatDescription($UpdateProduct['description'], $UpdateProduct['directions'], $UpdateProduct['ingredients']),
                         'short_description' => $this->truncateString($UpdateProduct['description']),
                         'categories' => [
                             [
@@ -304,8 +322,19 @@ class SyncWooProducts extends Command
                         ]
                     ];
                 }
+
+                if ($controller->mycredEnabled()) {
+                    $BatchUpdate[$j]['meta_data'][] = array(
+                        'key' => 'mycred_reward',
+                        'value' => array(
+                            'mycred_default' =>  $controller->mycredDefaultPoints()
+                        )
+                    );
+                }
+
+                $j++;
             }
-            $batchSize = 50;
+            $batchSize = $controller->wooProductsPerBatch();
             $i = 1;
             $chunks = array_chunk($BatchUpdate, $batchSize);
             foreach ($chunks as $chunk) {
@@ -317,7 +346,7 @@ class SyncWooProducts extends Command
                     $this->info('FAILED Batch ' . $i . ' - REASON: ' . $e->getMessage());
                 }
                 $i++;
-                sleep(5);
+                sleep($controller->wooSleepSeconds());
             }
             $this->info('Product Update Job Completed');
         }
@@ -325,73 +354,77 @@ class SyncWooProducts extends Command
         $this->info('OdooWoo Synchronization Completed. Have Fun :)');
     }
 
-    private function formatDescription($description, $directions, $ingredients) {
+    private function formatDescription($description, $directions, $ingredients)
+    {
         $text = '';
-        if (!empty($description)){
+        if (!empty($description)) {
             $text .= strip_tags(htmlspecialchars_decode($description));
         }
-        if (!empty($directions)){
-            $text .= "\n<h3>DIRECTIONS</h3>\n".strip_tags(htmlspecialchars_decode($directions));
+        if (!empty($directions)) {
+            $text .= "\n<h3>DIRECTIONS</h3>\n" . strip_tags(htmlspecialchars_decode($directions));
         }
-        if (!empty($ingredients)){
-            $text .= "\n<h3>INGREDIENTS</h3>\n".strip_tags(htmlspecialchars_decode($ingredients));
+        if (!empty($ingredients)) {
+            $text .= "\n<h3>INGREDIENTS</h3>\n" . strip_tags(htmlspecialchars_decode($ingredients));
         }
         return $text;
     }
 
-    private function cutToEndOfLastSentence($text) {
+    private function cutToEndOfLastSentence($text)
+    {
         // Find the last occurrence of a period, question mark, or exclamation mark
         $lastSentenceEnd = max(strrpos($text, '.'), strrpos($text, '?'), strrpos($text, '!'));
-    
+
         // If no valid sentence end is found, return the original text
         if ($lastSentenceEnd === false) {
             return $text;
         }
-    
+
         // Cut the text to the end of the last sentence
         $cutText = substr($text, 0, $lastSentenceEnd + 1); // Include the sentence end punctuation
-    
+
         return $cutText;
     }
 
-    private function trimSentences($inputText) {
+    private function trimSentences($inputText)
+    {
         // Split the input text into paragraphs
         $paragraphs = preg_split('/\n\s*\n/', $inputText);
-    
+
         // Process each paragraph
         foreach ($paragraphs as &$paragraph) {
             // Split the paragraph into sentences
             $sentences = preg_split('/(?<=[.!?])\s+(?=[A-Z])/', $paragraph);
-    
+
             // Trim each sentence
             foreach ($sentences as &$sentence) {
                 $sentence = trim($sentence);
             }
-    
+
             // Join the sentences back into the paragraph
             $paragraph = implode(' ', $sentences);
         }
-    
+
         // Join the paragraphs back into the text
         $cleanedText = implode("\n\n", $paragraphs);
-    
+
         return $cleanedText;
     }
 
-    private function truncateString($inputText, $limit = 250) {
+    private function truncateString($inputText, $limit = 250)
+    {
 
         $inputText = preg_replace('/[^\S\r\n]+/', ' ', $inputText);
         $inputText = preg_replace('/^(?=[^\s\r\n])\s+/m', '', $inputText);
         $paragraphs = preg_split('/\n\s*\n/', $inputText, 2, PREG_SPLIT_NO_EMPTY);
-        
+
         // Check if there's at least one paragraph
         if (empty($paragraphs)) {
             return '';
         }
-        
+
         // Get the first paragraph
         $firstParagraph = $this->trimSentences($paragraphs[0]);
-        
+
         // Check the length of the first paragraph
         if (strlen($firstParagraph) <= $limit) {
             return $firstParagraph;

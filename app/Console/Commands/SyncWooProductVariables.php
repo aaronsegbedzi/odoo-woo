@@ -10,6 +10,7 @@ use App\Http\Controllers\WooProduct;
 use Codexshaper\WooCommerce\Facades\Product;
 use Illuminate\Support\Facades\Log;
 use Codexshaper\WooCommerce\Facades\Variation;
+use App\Http\Controllers\Controller;
 
 class SyncWooProductVariables extends Command
 {
@@ -32,10 +33,9 @@ class SyncWooProductVariables extends Command
      */
     public function handle()
     {
-
         $this->info('OdooWoo Variable Products Synchronization Job - ' . date("F j, Y, g:i a"));
-
         $syncImages = $this->option('images');
+        $controller = new Controller();
 
         // Get the products from Odoo.
         $OdooProduct = new OdooProduct();
@@ -48,41 +48,41 @@ class SyncWooProductVariables extends Command
         $this->info('Woo Variable Products Fetched: ' . count($WooProducts));
 
         //CATEGROIES//////////////////////////////////////////////////////////////////////////////////////////////////
-            // Get the categories from Odoo.
-            $OdooCategories = [];
-            foreach ($OdooProducts as $OdooProduct) {
-                $OdooCategories[] = $OdooProduct['cat'];
-            }
-            $OdooCategories = array_values(array_map("unserialize", array_unique(array_map("serialize", $OdooCategories))));
-            $this->info('Odoo Categories Fetched: ' . count($OdooCategories));
+        // Get the categories from Odoo.
+        $OdooCategories = [];
+        foreach ($OdooProducts as $OdooProduct) {
+            $OdooCategories[] = $OdooProduct['cat'];
+        }
+        $OdooCategories = array_values(array_map("unserialize", array_unique(array_map("serialize", $OdooCategories))));
+        $this->info('Odoo Categories Fetched: ' . count($OdooCategories));
 
+        // Get the categories from WooCommerce.
+        $WooCategory = new WooCategory();
+        $WooCategories = $WooCategory->getCategories();
+        $this->info('Woo Categories Fetched: ' . count($WooCategories));
+
+        // Create Categories if not exist in WooCommerce.
+        $array1_ids = array_column($OdooCategories, 1);
+        $array2_ids = array_column($WooCategories, 1);
+        $CreateCategories = array_diff($array1_ids, $array2_ids);
+        if (count($CreateCategories) > 0) {
+            $this->info('Creating ' . count($CreateCategories) . ' Categories in Woo.');
+            foreach ($CreateCategories as $CreateCategory) {
+                $WooCategory->createCategory($CreateCategory);
+                $this->info('Created Category: ' . $CreateCategory);
+            }
             // Get the categories from WooCommerce.
             $WooCategory = new WooCategory();
             $WooCategories = $WooCategory->getCategories();
-            $this->info('Woo Categories Fetched: ' . count($WooCategories));
+        }
 
-            // Create Categories if not exist in WooCommerce.
-            $array1_ids = array_column($OdooCategories, 1);
-            $array2_ids = array_column($WooCategories, 1);
-            $CreateCategories = array_diff($array1_ids, $array2_ids);
-            if (count($CreateCategories) > 0) {
-                $this->info('Creating ' . count($CreateCategories) . ' Categories in Woo.');
-                foreach ($CreateCategories as $CreateCategory) {
-                    $WooCategory->createCategory($CreateCategory);
-                    $this->info('Created Category: ' . $CreateCategory);
-                }
-                // Get the categories from WooCommerce.
-                $WooCategory = new WooCategory();
-                $WooCategories = $WooCategory->getCategories();
-            }
-
-            // Merge Odoo and WooCommerce categories.
-            $Categories = array_map(function ($item1) use ($WooCategories) {
-                $matchingItems = array_filter($WooCategories, function ($item2) use ($item1) {
-                    return $item2[1] === $item1[1];
-                });
-                return array_merge($item1, ...$matchingItems);
-            }, $OdooCategories);
+        // Merge Odoo and WooCommerce categories.
+        $Categories = array_map(function ($item1) use ($WooCategories) {
+            $matchingItems = array_filter($WooCategories, function ($item2) use ($item1) {
+                return $item2[1] === $item1[1];
+            });
+            return array_merge($item1, ...$matchingItems);
+        }, $OdooCategories);
         //CATEGROIES//////////////////////////////////////////////////////////////////////////////////////////////////
 
         //BRANDS//////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -118,39 +118,39 @@ class SyncWooProductVariables extends Command
         //BRANDS//////////////////////////////////////////////////////////////////////////////////////////////////////
 
         //ATTRIBUTES//////////////////////////////////////////////////////////////////////////////////////////////////
-            // Get the attributes from Odoo.
-            $OdooAttributes = [];
-            foreach ($OdooProducts as $OdooProduct) {
-                foreach ($OdooProduct['variants'] as $value) {
-                    $OdooAttributes[] = array($value['att_name']);
-                }
+        // Get the attributes from Odoo.
+        $OdooAttributes = [];
+        foreach ($OdooProducts as $OdooProduct) {
+            foreach ($OdooProduct['variants'] as $value) {
+                $OdooAttributes[] = array($value['att_name']);
             }
-            $OdooAttributes = array_values(array_map("unserialize", array_unique(array_map("serialize", $OdooAttributes))));
-            $this->info('Odoo Attributes Fetched: ' . count($OdooAttributes));
+        }
+        $OdooAttributes = array_values(array_map("unserialize", array_unique(array_map("serialize", $OdooAttributes))));
+        $this->info('Odoo Attributes Fetched: ' . count($OdooAttributes));
 
+        // Get the attributes from WooCommerce.
+        $WooAttribute = new WooAttribute();
+        $WooAttributes = $WooAttribute->getAttributes();
+        $this->info('Woo Attributes Fetched: ' . count($WooAttributes));
+
+        // Create attributes if not exist in WooCommerce.
+        $array1_ids = array_column($OdooAttributes, 0);
+        $array2_ids = array_column($WooAttributes, 1);
+        $CreateAttributes = array_diff($array1_ids, $array2_ids);
+
+        if (count($CreateAttributes) > 0) {
+            $this->info('Creating ' . count($CreateAttributes) . ' Attributes in Woo.');
+            foreach ($CreateAttributes as $CreateAttribute) {
+                $WooAttribute->createAttribute($CreateAttribute);
+                $this->info('Created Attribute: ' . $CreateAttribute);
+            }
             // Get the attributes from WooCommerce.
             $WooAttribute = new WooAttribute();
             $WooAttributes = $WooAttribute->getAttributes();
-            $this->info('Woo Attributes Fetched: ' . count($WooAttributes));
+        }
 
-            // Create attributes if not exist in WooCommerce.
-            $array1_ids = array_column($OdooAttributes, 0);
-            $array2_ids = array_column($WooAttributes, 1);
-            $CreateAttributes = array_diff($array1_ids, $array2_ids);
-
-            if (count($CreateAttributes) > 0) {
-                $this->info('Creating ' . count($CreateAttributes) . ' Attributes in Woo.');
-                foreach ($CreateAttributes as $CreateAttribute) {
-                    $WooAttribute->createAttribute($CreateAttribute);
-                    $this->info('Created Attribute: ' . $CreateAttribute);
-                }
-                // Get the attributes from WooCommerce.
-                $WooAttribute = new WooAttribute();
-                $WooAttributes = $WooAttribute->getAttributes();
-            }
-
-            // Merge Odoo and WooCommerce attributes.
-            $Attributes = $WooAttributes;
+        // Merge Odoo and WooCommerce attributes.
+        $Attributes = $WooAttributes;
         //ATTRIBUTES//////////////////////////////////////////////////////////////////////////////////////////////////
 
         $CreateProducts = [];
@@ -171,7 +171,8 @@ class SyncWooProductVariables extends Command
             }
         }
 
-        $this->info('No. Product Variables To Create: ' . count($CreateProducts) . ' | No. Product Variables To Update: ' . count($UpdateProducts));
+        $this->info('No. Product Variables To Create: ' . count($CreateProducts));
+        $this->info('No. Product Variables To Update: ' . count($UpdateProducts));
 
         if (count($CreateProducts) > 0) {
             $total = count($CreateProducts);
@@ -209,8 +210,8 @@ class SyncWooProductVariables extends Command
                     'name' => $Product['name'],
                     'status' => 'publish',
                     'type' => 'variable',
-                    'description' => $this->formatDescription($Product['description'], $Product['directions'],$Product['ingredients']),
-                    'short_description' => $this->truncateString($Product['description']),
+                    'description' => $controller->formatDescription($Product['description'], $Product['directions'], $Product['ingredients']),
+                    'short_description' => $controller->truncateString($Product['description']),
                     'categories' => [
                         [
                             'id' => $Categories[$index][2]
@@ -249,17 +250,16 @@ class SyncWooProductVariables extends Command
                 try {
                     $product = Product::create($data);
                 } catch (\Exception $e) {
-                    $this->info('Failed to CREATE: '.$Product['name'].' REASON: '.$e->getMessage());
+                    $this->info('FAILED to CREATE: ' . $Product['name'] . ' REASON: ' . $e->getMessage());
                     break;
                 }
 
-
-                sleep(5);
+                sleep($controller->wooSleepSeconds());
 
                 $variants = [];
-
+                $j = 0;
                 foreach ($Product['variants'] as $Variant) {
-                    $variants[] = [
+                    $variants[$j] = [
                         'status' => 'publish',
                         'regular_price' => (string) $Variant['price'],
                         'stock_status' => $Variant['qty'] > 0 ? 'instock' : 'outofstock',
@@ -282,16 +282,25 @@ class SyncWooProductVariables extends Command
                             ]
                         ]
                     ];
+                    if ($controller->mycredEnabled()) {
+                        $variants[$j]['meta_data'][] = array(
+                            'key' => '_mycred_reward',
+                            'value' => array(
+                                'mycred_default' =>  $controller->mycredDefaultPoints()
+                            )
+                        );
+                    }
+                    $j++;
                 }
 
                 try {
                     $_batch = Variation::batch($product['id'], ['create' => $variants]);
                 } catch (\Exception $e) {
-                    $this->info('Failed to CREATE: '.$Product['name'].' REASON: '.$e->getMessage());
+                    $this->info('FAILED to CREATE: ' . $Product['name'] . ' REASON: ' . $e->getMessage());
                     break;
                 }
 
-                sleep(5);
+                sleep($controller->wooSleepSeconds());
 
                 $this->info('Created Product ' . $i . '/' . $total);
 
@@ -337,8 +346,8 @@ class SyncWooProductVariables extends Command
                         'name' => $Product['name'],
                         'status' => 'publish',
                         'type' => 'variable',
-                        'description' => $this->formatDescription($Product['description'], $Product['directions'],$Product['ingredients']),
-                        'short_description' => $this->truncateString($Product['description']),
+                        'description' => $controller->formatDescription($Product['description'], $Product['directions'], $Product['ingredients']),
+                        'short_description' => $controller->truncateString($Product['description']),
                         'categories' => [
                             [
                                 'id' => $Categories[$index][2]
@@ -372,8 +381,8 @@ class SyncWooProductVariables extends Command
                         'name' => $Product['name'],
                         'status' => 'publish',
                         'type' => 'variable',
-                        'description' => $this->formatDescription($Product['description'], $Product['directions'],$Product['ingredients']),
-                        'short_description' => $this->truncateString($Product['description']),
+                        'description' => $controller->formatDescription($Product['description'], $Product['directions'], $Product['ingredients']),
+                        'short_description' => $controller->truncateString($Product['description']),
                         'categories' => [
                             [
                                 'id' => $Categories[$index][2]
@@ -402,11 +411,11 @@ class SyncWooProductVariables extends Command
                 try {
                     $product = Product::update($Product['woo_id'], $data);
                 } catch (\Exception $e) {
-                    $this->info('Failed to UPDATE: '.$Product['name'].' REASON: '.$e->getMessage());
+                    $this->info('FAILED to UPDATE: ' . $Product['name'] . ' REASON: ' . $e->getMessage());
                     break;
                 }
 
-                sleep(5);
+                sleep($controller->wooSleepSeconds());
 
                 $WooProduct = new WooProduct();
                 $WooVariations = $WooProduct->getVariations($Product['woo_id']);
@@ -433,9 +442,10 @@ class SyncWooProductVariables extends Command
                 $BatchUpdateVariants = [];
 
                 if (count($CreateVariants) > 0) {
+                    $j = 0;
                     foreach ($CreateVariants as $Variant) {
                         if ($syncImages) {
-                            $BatchCreateVariants[] = [
+                            $BatchCreateVariants[$j] = [
                                 'status' => 'publish',
                                 'regular_price' => (string) $Variant['price'],
                                 'stock_status' => $Variant['qty'] > 0 ? 'instock' : 'outofstock',
@@ -459,7 +469,7 @@ class SyncWooProductVariables extends Command
                                 ]
                             ];
                         } else {
-                            $BatchCreateVariants[] = [
+                            $BatchCreateVariants[$j] = [
                                 'status' => 'publish',
                                 'regular_price' => (string) $Variant['price'],
                                 'stock_status' => $Variant['qty'] > 0 ? 'instock' : 'outofstock',
@@ -480,13 +490,23 @@ class SyncWooProductVariables extends Command
                                 ]
                             ];
                         }
+                        if ($controller->mycredEnabled()) {
+                            $BatchCreateVariants[$j]['meta_data'][] = array(
+                                'key' => '_mycred_reward',
+                                'value' => array(
+                                    'mycred_default' =>  $controller->mycredDefaultPoints()
+                                )
+                            );
+                        }
+                        $j++;
                     }
                 }
 
                 if (count($UpdateVariants) > 0) {
+                    $j = 0;
                     foreach ($UpdateVariants as $Variant) {
                         if ($syncImages) {
-                            $BatchUpdateVariants[] = [
+                            $BatchUpdateVariants[$j] = [
                                 'id' => $Variant['woo_id'],
                                 'status' => 'publish',
                                 'regular_price' => (string) $Variant['price'],
@@ -498,7 +518,7 @@ class SyncWooProductVariables extends Command
                                 ]
                             ];
                         } else {
-                            $BatchUpdateVariants[] = [
+                            $BatchUpdateVariants[$j] = [
                                 'id' => $Variant['woo_id'],
                                 'status' => 'publish',
                                 'regular_price' => (string) $Variant['price'],
@@ -507,17 +527,26 @@ class SyncWooProductVariables extends Command
                                 'manage_stock' => true
                             ];
                         }
+                        if ($controller->mycredEnabled()) {
+                            $BatchUpdateVariants[$j]['meta_data'][] = array(
+                                'key' => '_mycred_reward',
+                                'value' => array(
+                                    'mycred_default' =>  $controller->mycredDefaultPoints()
+                                )
+                            );
+                        }
+                        $j++;
                     }
                 }
 
                 try {
                     $_batch = Variation::batch($Product['woo_id'], ['create' => $BatchCreateVariants, 'update' => $BatchUpdateVariants]);
                 } catch (\Exception $e) {
-                    $this->info('Failed to UPDATE: '.$Product['name'].' REASON: '.$e->getMessage());
+                    $this->info('Failed to UPDATE: ' . $Product['name'] . ' REASON: ' . $e->getMessage());
                     break;
                 }
 
-                sleep(5);
+                sleep($controller->wooSleepSeconds());
 
                 $this->info('Updated Product ' . $i . '/' . $total);
 
@@ -541,81 +570,5 @@ class SyncWooProductVariables extends Command
             }
         }
         return $id;
-    }
-
-    private function cutToEndOfLastSentence($text) {
-        // Find the last occurrence of a period, question mark, or exclamation mark
-        $lastSentenceEnd = max(strrpos($text, '.'), strrpos($text, '?'), strrpos($text, '!'));
-    
-        // If no valid sentence end is found, return the original text
-        if ($lastSentenceEnd === false) {
-            return $text;
-        }
-    
-        // Cut the text to the end of the last sentence
-        $cutText = substr($text, 0, $lastSentenceEnd + 1); // Include the sentence end punctuation
-    
-        return $cutText;
-    }
-
-    private function trimSentences($inputText) {
-        // Split the input text into paragraphs
-        $paragraphs = preg_split('/\n\s*\n/', $inputText);
-    
-        // Process each paragraph
-        foreach ($paragraphs as &$paragraph) {
-            // Split the paragraph into sentences
-            $sentences = preg_split('/(?<=[.!?])\s+(?=[A-Z])/', $paragraph);
-    
-            // Trim each sentence
-            foreach ($sentences as &$sentence) {
-                $sentence = trim($sentence);
-            }
-    
-            // Join the sentences back into the paragraph
-            $paragraph = implode(' ', $sentences);
-        }
-    
-        // Join the paragraphs back into the text
-        $cleanedText = implode("\n\n", $paragraphs);
-    
-        return $cleanedText;
-    }
-
-    private function truncateString($inputText, $limit = 250) {
-
-        $inputText = preg_replace('/[^\S\r\n]+/', ' ', $inputText);
-        $inputText = preg_replace('/^(?=[^\s\r\n])\s+/m', '', $inputText);
-        $paragraphs = preg_split('/\n\s*\n/', $inputText, 2, PREG_SPLIT_NO_EMPTY);
-        
-        // Check if there's at least one paragraph
-        if (empty($paragraphs)) {
-            return '';
-        }
-        
-        // Get the first paragraph
-        $firstParagraph = $this->trimSentences($paragraphs[0]);
-        
-        // Check the length of the first paragraph
-        if (strlen($firstParagraph) <= $limit) {
-            return $firstParagraph;
-        } else {
-            // Shorten the text to 250 characters
-            return $this->cutToEndOfLastSentence(substr($firstParagraph, 0, $limit));
-        }
-    }
-
-    private function formatDescription($description, $directions, $ingredients) {
-        $text = '';
-        if (!empty($description)){
-            $text .= strip_tags(htmlspecialchars_decode($description));
-        }
-        if (!empty($directions)){
-            $text .= "\n<h3>DIRECTIONS</h3>\n".strip_tags(htmlspecialchars_decode($directions));
-        }
-        if (!empty($ingredients)){
-            $text .= "\n<h3>INGREDIENTS</h3>\n".strip_tags(htmlspecialchars_decode($ingredients));
-        }
-        return $text;
     }
 }

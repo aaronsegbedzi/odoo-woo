@@ -185,4 +185,33 @@ return [
         // 'Example' => App\Facades\Example::class,
     ])->toArray(),
 
+    // OdooWoo Settings
+    'odoowoo_sync_simple' => (bool) env('ODOOWOO_SYNC_SIMPLE_ENABLED', false),
+    'odoowoo_sync_variable' => (bool) env('ODOOWOO_SYNC_VARIABLE_ENABLED', false),
+    'odoowoo_pos_sms' => (bool) env('ODOOWOO_POS_SMS_NOTIFICATIONS', false),
+    'odoowoo_pos_sms_recipients' => env('ODOOWOO_POS_SMS_NOTIFICATIONS_RECIPIENTS', "0558181935"),
+    'odoowoo_pos_sms_time' => env('ODOOWOO_POS_SMS_NOTIFICATIONS_TIME', '20:00'),
+    'odoowoo_currency' => env('ODOOWOO_CURRENCY', 'GHS'),
+
+    // WooCommerce Settings
+    'woo_sleep_seconds' => env('WOOCOMMERCE_BATCH_WAIT_TIME', 10),
+    'woo_products_per_batch' => env('WOOCOMMERCE_PRODUCTS_PER_BATCH', 10),
+
+    // Odoo Settings
+    'odoo_url' => env('ODOO_URL', ''),
+    'odoo_db' => env('ODOO_DB', ''),
+    'odoo_username' => env('ODOO_USERNAME', ''),
+    'odoo_password' => env('ODOO_PASSWORD', ''),
+    'odoo_delay' => env('ODOO_DELAY_SECONDS', 1),
+
+    // mNotify Settings
+    'mnotify_api_url' => env('MNOTIFY_API_URL', ''),
+    'mnotify_api_key' => env('MNOTIFY_API_KEY', ''),
+    'mnotify_sender_id' => env('MNOTIFY_SENDER_ID', ''),
+    
+    // myCred WooCommerce Plugin Settings
+    'mycred_enabled' => env('MYCRED_PLUGIN_ENABLED', false),
+    'mycred_default_points' => env('MYCRED_DEFAULT_POINTS', 10),
+
+
 ];

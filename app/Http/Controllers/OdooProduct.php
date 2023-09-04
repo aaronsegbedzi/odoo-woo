@@ -7,28 +7,20 @@ use OdooClient\Client;
 class OdooProduct extends Controller
 {
     protected $client;
-    protected $delay;
 
     public function __construct()
     {
-
-        $url = env('ODOO_URL', '');
-
-        $database = env('ODOO_DB', '');
-
-        $user = env('ODOO_USERNAME', '');
-
-        $password = env('ODOO_PASSWORD', '');
-
+        $url = config('app.odoo_url');
+        $database = config('app.odoo_db', '');
+        $user = config('app.odoo_username');
+        $password = config('app.odoo_password');
         $this->client = new Client($url, $database, $user, $password);
-
-        $this->delay = env('ODOO_DELAY', 1);
     }
 
     public function getProducts($limit = 1000)
     {
 
-        sleep($this->delay);
+        sleep($this->odooSleepSeconds());
 
         $fields = array(
             'id',
@@ -54,7 +46,11 @@ class OdooProduct extends Controller
             array('has_configurable_attributes', '=', false)
         );
 
-        $products = $this->client->search_read('product.template', $criteria, $fields, $limit);
+        try {
+            $products = $this->client->search_read('product.template', $criteria, $fields, $limit);
+        } catch (\Throwable $th) {
+            throw $th;
+        }
 
         if (!empty($products)) {
             foreach ($products as $product) {
@@ -85,8 +81,6 @@ class OdooProduct extends Controller
     public function getVariableProducts($limit = 1000)
     {
 
-        sleep($this->delay);
-
         $fields = array(
             'id',
             'name',
@@ -108,7 +102,11 @@ class OdooProduct extends Controller
             array('has_configurable_attributes', '=', true)
         );
 
-        $products = $this->client->search_read('product.template', $criteria, $fields, $limit);
+        try {
+            $products = $this->client->search_read('product.template', $criteria, $fields, $limit);
+        } catch (\Throwable $th) {
+            throw $th;
+        }
 
         if (!empty($products)) {
             foreach ($products as $product) {
@@ -131,16 +129,20 @@ class OdooProduct extends Controller
 
         exit();
     }
-  
+
     private function getProductVariants($id)
     {
         
-        sleep($this->delay);
+        sleep($this->odooSleepSeconds());
 
         $payload = [];
         $fields = array('id', 'product_template_variant_value_ids', 'qty_available', 'list_price', 'pricelist_item_count', 'default_code');
         $criteria = array(array('product_tmpl_id', '=', $id));
-        $products = $this->client->search_read('product.product', $criteria, $fields);
+        try {
+            $products = $this->client->search_read('product.product', $criteria, $fields);
+        } catch (\Throwable $th) {
+            throw $th;
+        }
         foreach ($products as $product) {
             $variant = $this->getVariantAttribute($product['product_template_variant_value_ids']);
             $payload[] = array(
@@ -159,12 +161,16 @@ class OdooProduct extends Controller
     private function getVariantAttribute($id)
     {
 
-        sleep($this->delay);
+        sleep($this->odooSleepSeconds());
 
         $payload = [];
         $fields = array('id', 'name', 'attribute_line_id');
         $criteria = array(array('id', '=', $id));
-        $products = $this->client->search_read('product.template.attribute.value', $criteria, $fields);
+        try {
+            $products = $this->client->search_read('product.template.attribute.value', $criteria, $fields);
+        } catch (\Throwable $th) {
+            throw $th;
+        }
         $payload = array(
             'name' => $products[0]['attribute_line_id'][1],
             'value' => $products[0]['name'],
@@ -172,14 +178,18 @@ class OdooProduct extends Controller
         return $payload;
     }
 
-    private function getVariantCustomPrice($id) {
-        
-        sleep($this->delay);
+    private function getVariantCustomPrice($id)
+    {
+
+        sleep($this->odooSleepSeconds());
 
         $fields = array('id', 'fixed_price');
         $criteria = array(array('product_id', '=', $id));
-        $products = $this->client->search_read('product.pricelist.item', $criteria, $fields);
+        try {
+            $products = $this->client->search_read('product.pricelist.item', $criteria, $fields);
+        } catch (\Throwable $th) {
+            throw $th;
+        }
         return $products[0]['fixed_price'];
     }
-
 }

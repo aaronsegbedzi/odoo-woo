@@ -2,12 +2,29 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use Codexshaper\WooCommerce\Facades\Product;
 use Codexshaper\WooCommerce\Facades\Variation;
 
 class WooProduct extends Controller
 {
+    public function getProduct($id) {
+        try {
+            $product = Product::find($id);
+            return $product;
+        } catch (\Throwable $th) {
+            throw $th;
+        }
+    }
+
+    public function getProductVariation($product_id, $id) {
+        try {
+            $product = Variation::find($product_id, $id);
+            return $product;
+        } catch (\Throwable $th) {
+            throw $th;
+        }
+    }
+
     public function getProducts()
     {
         $next_page = 1;
