@@ -186,16 +186,28 @@ return [
     ])->toArray(),
 
     // OdooWoo Settings
+    'odoowoo_company' => env('ODOOWOO_COMPANY_NAME', "COCOWARE"),
+    'odoowoo_admin_email' => env('MAIL_NOTIFICATIONS','admin@cocoware.co.uk'),
     'odoowoo_sync_simple' => (bool) env('ODOOWOO_SYNC_SIMPLE_ENABLED', false),
     'odoowoo_sync_variable' => (bool) env('ODOOWOO_SYNC_VARIABLE_ENABLED', false),
+    
+    // OdooWoo POS SMS Settings
     'odoowoo_pos_sms' => (bool) env('ODOOWOO_POS_SMS_NOTIFICATIONS', false),
     'odoowoo_pos_sms_recipients' => env('ODOOWOO_POS_SMS_NOTIFICATIONS_RECIPIENTS', "0558181935"),
-    'odoowoo_pos_sms_time' => env('ODOOWOO_POS_SMS_NOTIFICATIONS_TIME', '20:00'),
+    'odoowoo_pos_sms_time' => env('ODOOWOO_POS_SMS_NOTIFICATIONS_TIME', '18:00'),
+    
+    // OdooWoo Customer SMS Settings
+    'odoowoo_customer_sms' => (bool) env('ODOOWOO_CUSTOMER_SMS_NOTIFICATIONS', false),
+    'odoowoo_customer_sms_time' => (bool) env('ODOOWOO_CUSTOMER_SMS_NOTIFICATIONS_TIME', '12:00'),
+    'odoowoo_customer_sms_template_1' => env('ODOOWOO_CUSTOMER_SMS_TEMPLATE', "Hey [name], it's [company]. Your recent purchase warms our hearts. Thank you for choosing us!"),
+    
+    // OdooWoo Currency Settings
     'odoowoo_currency' => env('ODOOWOO_CURRENCY', 'GHS'),
 
     // WooCommerce Settings
     'woo_sleep_seconds' => env('WOOCOMMERCE_BATCH_WAIT_TIME', 10),
     'woo_products_per_batch' => env('WOOCOMMERCE_PRODUCTS_PER_BATCH', 10),
+    'woo_default_desc' => (bool) env('WOOCOMMERCE_DEFAULT_DESCRIPTION', false),
 
     // Odoo Settings
     'odoo_url' => env('ODOO_URL', ''),
@@ -207,10 +219,10 @@ return [
     // mNotify Settings
     'mnotify_api_url' => env('MNOTIFY_API_URL', ''),
     'mnotify_api_key' => env('MNOTIFY_API_KEY', ''),
-    'mnotify_sender_id' => env('MNOTIFY_SENDER_ID', ''),
+    'mnotify_sender_id' => env('MNOTIFY_SENDER_ID', 'COCOWARE'),
     
     // myCred WooCommerce Plugin Settings
-    'mycred_enabled' => env('MYCRED_PLUGIN_ENABLED', false),
+    'mycred_enabled' => (bool) env('MYCRED_PLUGIN_ENABLED', false),
     'mycred_default_points' => env('MYCRED_DEFAULT_POINTS', 10),
 
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use OdooClient\Client;
+use Illuminate\Support\Facades\Log;
 
 class OdooPOS extends Controller
 {
@@ -32,8 +33,8 @@ class OdooPOS extends Controller
         );
 
         $criteria = array(
-            array('start_at', '>', date($date." 00:00:00")),
-            array('stop_at', '<', date($date." 23:59:59")),
+            array('start_at', '>', date($date . " 00:00:00")),
+            array('stop_at', '<', date($date . " 23:59:59")),
             array('state', '=', 'closed')
         );
 
@@ -87,16 +88,111 @@ class OdooPOS extends Controller
         $messages = [];
         if (!empty($_sessions)) {
             foreach ($_sessions as $_session) {
-                $messages[] = $this->messageTemplate($_session);
+                $messages[] = $this->messageTemplate1($_session);
             }
         }
 
-        if (!empty($messages)) {
-            foreach ($messages as $message) {
-                $smsController = new SMSController();
-                $smsController->sendMessage($recipients, $message);
+        // if (!empty($messages)) {
+        //     foreach ($messages as $message) {
+        //         $smsController = new SMSController();
+        //         $response = $smsController->sendMessage($recipients, $message);
+        //         Log::info($response);
+        //     }
+        // }
+
+        dd($messages);
+    }
+
+    public function getDailyCustomers($date)
+    {
+        $fields = array(
+            'id'
+        );
+
+        $criteria = array(
+            array('start_at', '>', date($date . " 00:00:00")),
+            array('stop_at', '<', date($date . " 23:59:59")),
+            array('state', '=', 'closed')
+        );
+
+        try {
+            $sessions = $this->client->search_read('pos.session', $criteria, $fields);
+        } catch (\Throwable $th) {
+            throw $th;
+        }
+
+        $orders = [];
+        if (!empty($sessions)) {
+            foreach ($sessions as $session) {
+                sleep($this->odooSleepSeconds());
+                $fields = array(
+                    'id',
+                    'partner_id'
+                );
+
+                $criteria = array(
+                    array('session_id', '=', $session['id']),
+                    array('state', '=', 'done')
+                );
+
+                try {
+                    $orders = $this->client->search_read('pos.order', $criteria, $fields);
+                } catch (\Throwable $th) {
+                    throw $th;
+                }
             }
         }
+
+        $customers = [];
+        if (!empty($orders)) {
+            foreach ($orders as $order) {
+                if ($order['partner_id']) {
+                    sleep($this->odooSleepSeconds());
+                    $fields = array(
+                        'id',
+                        'phone',
+                        'name'
+                    );
+
+                    $criteria = array(
+                        array('id', '=', $order['partner_id'][0]),
+                    );
+
+                    try {
+                        $customers[] = $this->client->search_read('res.partner', $criteria, $fields)[0];
+                    } catch (\Throwable $th) {
+                        throw $th;
+                    }
+                }
+            }
+        }
+
+        $messages = [];
+        if (!empty($customers)) {
+            foreach ($customers as $customer) {
+                $messages[] = array(
+                    'recipient' => $customer['phone'],
+                    'message' => $this->messageTemplate2($customer)
+                );
+            }
+        }
+
+        // if (!empty($messages)) {
+        //     foreach ($messages as $message) {
+        //         $smsController = new SMSController();
+        //         $response = $smsController->sendMessage(array($message['recipient']), $message['message']);
+        //         Log::info($response);
+        //     }
+        // }
+        
+        dd($messages);
+    }
+
+    private function formatName($inputString)
+    {
+        // Use a regular expression to remove numbers and punctuation
+        $cleanedString = explode(' ', preg_replace('/[0-9\p{P}]/u', '', $inputString));
+        return trim($cleanedString[0]);
     }
 
     private function formatText($input)
@@ -110,9 +206,10 @@ class OdooPOS extends Controller
         return trim($output);
     }
 
-    private function messageTemplate($data) {
-        $message = $data['name']. " ";
-        $message .= "(".$data['ref'] . ") on ";
+    private function messageTemplate1($data)
+    {
+        $message = $data['name'] . " ";
+        $message .= "(" . $data['ref'] . ") on ";
         $message .= date("d M Y") . " ";
         $message .= "Report:\n";
         $message .= "Orders: " . $data['count'] . "\n";
@@ -120,6 +217,14 @@ class OdooPOS extends Controller
             $message .= $key . ": " . $this->currency . " " . number_format($value, 2) . "\n";
         }
         $message .= "Total: " . $this->currency . " " . number_format($data['total'], 2);
+        return $message;
+    }
+
+    private function messageTemplate2($data)
+    {
+        $message = config('app.odoowoo_customer_sms_template_1');
+        $message = str_replace('[name]', ucwords(strtolower($this->formatName($data['name']))), $message);
+        $message = str_replace('[company]', config('app.odoowoo_company'), $message);
         return $message;
     }
 }

@@ -17,7 +17,7 @@ class Kernel extends ConsoleKernel
             ->hourly()
             ->withoutOverlapping(60)
             ->runInBackground()
-            ->emailOutputTo(env('MAIL_NOTIFICATIONS',''));
+            ->emailOutputTo(config('app.odoowoo_admin_email'));
         }
 
         if (config('app.odoowoo_sync_variable')) {
@@ -25,14 +25,21 @@ class Kernel extends ConsoleKernel
             ->hourlyAt(30)
             ->withoutOverlapping(60)
             ->runInBackground()
-            ->emailOutputTo(env('MAIL_NOTIFICATIONS',''));
+            ->emailOutputTo(config('app.odoowoo_admin_email'));
         }
 
         if (config('app.odoowoo_pos_sms')) {
             $schedule->command('odoo:pos-daily-report --recipients='.config('app.odoowoo_pos_sms_recipients').' --date='.date("Y-m-d"))
             ->dailyAt(config('app.odoowoo_pos_sms_time'))
             ->runInBackground()
-            ->emailOutputTo(env('MAIL_NOTIFICATIONS',''));
+            ->emailOutputOnFailure(config('app.odoowoo_admin_email'));
+        }
+
+        if (config('app.odoowoo_customer_sms')) {
+            $schedule->command('odoo:customer-sms-daily --date='.date('Y-m-d', strtotime('-1 day')))
+            ->dailyAt(config('app.odoowoo_customer_sms_time'))
+            ->runInBackground()
+            ->emailOutputOnFailure(config('app.odoowoo_admin_email'));
         }
     }
 

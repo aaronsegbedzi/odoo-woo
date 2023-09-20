@@ -210,7 +210,7 @@ class SyncWooProductVariables extends Command
                     'name' => $Product['name'],
                     'status' => 'publish',
                     'type' => 'variable',
-                    'description' => $controller->formatDescription($Product['description'], $Product['directions'], $Product['ingredients']),
+                    'description' => $controller->formatDescription($Product['description'], $Product['directions'], $Product['ingredients'], $Product['name']),
                     'short_description' => $controller->truncateString($Product['description']),
                     'categories' => [
                         [
@@ -346,7 +346,7 @@ class SyncWooProductVariables extends Command
                         'name' => $Product['name'],
                         'status' => 'publish',
                         'type' => 'variable',
-                        'description' => $controller->formatDescription($Product['description'], $Product['directions'], $Product['ingredients']),
+                        'description' => $controller->formatDescription($Product['description'], $Product['directions'], $Product['ingredients'], $Product['name']),
                         'short_description' => $controller->truncateString($Product['description']),
                         'categories' => [
                             [
@@ -381,7 +381,7 @@ class SyncWooProductVariables extends Command
                         'name' => $Product['name'],
                         'status' => 'publish',
                         'type' => 'variable',
-                        'description' => $controller->formatDescription($Product['description'], $Product['directions'], $Product['ingredients']),
+                        'description' => $controller->formatDescription($Product['description'], $Product['directions'], $Product['ingredients'], $Product['name']),
                         'short_description' => $controller->truncateString($Product['description']),
                         'categories' => [
                             [

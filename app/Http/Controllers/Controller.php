@@ -18,6 +18,10 @@ class Controller extends BaseController
         return (int) config('app.woo_products_per_batch');
     }
 
+    public function wooDefaultDesc() {
+        return (bool) config('app.woo_default_desc');
+    }
+
     public function mycredEnabled() {
         return (bool) config('app.mycred_enabled');
     }
@@ -25,6 +29,10 @@ class Controller extends BaseController
     public function mycredDefaultPoints()
     {
         return (int) config('app.mycred_default_points');
+    }
+
+    public function odooWooCompany() {
+        return (int) config('app.odoowoo_company');
     }
 
     public function odooSleepSeconds() {
@@ -96,7 +104,7 @@ class Controller extends BaseController
         }
     }
 
-    public function formatDescription($description, $directions, $ingredients)
+    public function formatDescription($description, $directions, $ingredients, $name)
     {
         $text = '';
         if (!empty($description)) {
@@ -107,6 +115,9 @@ class Controller extends BaseController
         }
         if (!empty($ingredients)) {
             $text .= "\n<h3>INGREDIENTS</h3>\n" . strip_tags(htmlspecialchars_decode($ingredients));
+        }
+        if (empty($text) && $this->wooDefaultDesc()){
+            $text .= $name;
         }
         return $text;
     }

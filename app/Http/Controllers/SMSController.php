@@ -20,6 +20,7 @@ class SMSController extends Controller
     public function sendMessage($recipients, $message)
     {
         $url = $this->endPoint . '?key=' . $this->apiKey;
+        
         $query = [
             'recipient' => $recipients,
             'sender' => $this->senderID,
@@ -27,6 +28,7 @@ class SMSController extends Controller
             'is_schedule' => 'false',
             'schedule_date' => ''
         ];
+        
         $ch = curl_init();
 
         $headers = array();
@@ -39,9 +41,11 @@ class SMSController extends Controller
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($query));
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        
         $result = curl_exec($ch);
-        $result = json_decode($result, TRUE);
+        
         curl_close($ch);
+        
         return $result;
     }
 }

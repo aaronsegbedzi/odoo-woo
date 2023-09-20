@@ -171,7 +171,7 @@ class SyncWooProducts extends Command
                     'manage_stock' => true,
                     'stock_quantity' => $CreateProduct['qty'] > 0 ? $CreateProduct['qty'] : 0,
                     'stock_status' => $CreateProduct['qty'] > 0 ? 'instock' : 'outofstock',
-                    'description' => $this->formatDescription($CreateProduct['description'], $CreateProduct['directions'], $CreateProduct['ingredients']),
+                    'description' => $controller->formatDescription($CreateProduct['description'], $CreateProduct['directions'], $CreateProduct['ingredients'], $CreateProduct['name']),
                     'short_description' => $this->truncateString($CreateProduct['description']),
                     'categories' => [
                         [
@@ -260,7 +260,7 @@ class SyncWooProducts extends Command
                         'manage_stock' => true,
                         'stock_quantity' => $UpdateProduct['qty'] > 0 ? $UpdateProduct['qty'] : 0,
                         'stock_status' => $UpdateProduct['qty'] > 0 ? 'instock' : 'outofstock',
-                        'description' => $this->formatDescription($UpdateProduct['description'], $UpdateProduct['directions'], $UpdateProduct['ingredients']),
+                        'description' => $controller->formatDescription($UpdateProduct['description'], $UpdateProduct['directions'], $UpdateProduct['ingredients'], $UpdateProduct['name']),
                         'short_description' => $this->truncateString($UpdateProduct['description']),
                         'categories' => [
                             [
@@ -298,7 +298,7 @@ class SyncWooProducts extends Command
                         'manage_stock' => true,
                         'stock_quantity' => $UpdateProduct['qty'] > 0 ? $UpdateProduct['qty'] : 0,
                         'stock_status' => $UpdateProduct['qty'] > 0 ? 'instock' : 'outofstock',
-                        'description' => $this->formatDescription($UpdateProduct['description'], $UpdateProduct['directions'], $UpdateProduct['ingredients']),
+                        'description' => $controller->formatDescription($UpdateProduct['description'], $UpdateProduct['directions'], $UpdateProduct['ingredients'], $UpdateProduct['name']),
                         'short_description' => $this->truncateString($UpdateProduct['description']),
                         'categories' => [
                             [
@@ -352,21 +352,6 @@ class SyncWooProducts extends Command
         }
 
         $this->info('OdooWoo Synchronization Completed. Have Fun :)');
-    }
-
-    private function formatDescription($description, $directions, $ingredients)
-    {
-        $text = '';
-        if (!empty($description)) {
-            $text .= strip_tags(htmlspecialchars_decode($description));
-        }
-        if (!empty($directions)) {
-            $text .= "\n<h3>DIRECTIONS</h3>\n" . strip_tags(htmlspecialchars_decode($directions));
-        }
-        if (!empty($ingredients)) {
-            $text .= "\n<h3>INGREDIENTS</h3>\n" . strip_tags(htmlspecialchars_decode($ingredients));
-        }
-        return $text;
     }
 
     private function cutToEndOfLastSentence($text)
