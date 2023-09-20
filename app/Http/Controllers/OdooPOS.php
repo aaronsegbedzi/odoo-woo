@@ -92,15 +92,15 @@ class OdooPOS extends Controller
             }
         }
 
-        // if (!empty($messages)) {
-        //     foreach ($messages as $message) {
-        //         $smsController = new SMSController();
-        //         $response = $smsController->sendMessage($recipients, $message);
-        //         Log::info($response);
-        //     }
-        // }
+        if (!empty($messages)) {
+            foreach ($messages as $message) {
+                $smsController = new SMSController();
+                $response = $smsController->sendMessage($recipients, $message);
+                Log::info($response);
+            }
+        }
 
-        dd($messages);
+        // dd($messages);
     }
 
     public function getDailyCustomers($date)
@@ -177,15 +177,15 @@ class OdooPOS extends Controller
             }
         }
 
-        // if (!empty($messages)) {
-        //     foreach ($messages as $message) {
-        //         $smsController = new SMSController();
-        //         $response = $smsController->sendMessage(array($message['recipient']), $message['message']);
-        //         Log::info($response);
-        //     }
-        // }
+        if (!empty($messages)) {
+            foreach ($messages as $message) {
+                $smsController = new SMSController();
+                $response = $smsController->sendMessage(array($message['recipient']), $message['message']);
+                Log::info($response);
+            }
+        }
         
-        dd($messages);
+        // dd($messages);
     }
 
     private function formatName($inputString)
