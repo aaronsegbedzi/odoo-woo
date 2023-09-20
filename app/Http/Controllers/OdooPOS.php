@@ -99,8 +99,6 @@ class OdooPOS extends Controller
                 Log::info($response);
             }
         }
-
-        // dd($messages);
     }
 
     public function getDailyCustomers($date)
@@ -167,6 +165,9 @@ class OdooPOS extends Controller
             }
         }
 
+        $customers = array_column($customers, null, 'phone');
+        $customers = array_values($customers);
+
         $messages = [];
         if (!empty($customers)) {
             foreach ($customers as $customer) {
@@ -184,8 +185,6 @@ class OdooPOS extends Controller
                 Log::info($response);
             }
         }
-        
-        // dd($messages);
     }
 
     private function formatName($inputString)
