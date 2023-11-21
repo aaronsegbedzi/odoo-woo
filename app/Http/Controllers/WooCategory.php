@@ -94,7 +94,21 @@ class WooCategory extends Controller
                 'name' => $name
             ];
             $category = Category::create($data);
-            return true;
+            $payload = json_decode($category, true);
+            return $payload['id'];
+        } catch (\Throwable $th) {
+            return false;
+        }
+    }
+
+    public function setParentCatergory($id, $parent_id)
+    {
+        try {
+            $data = [
+                'parent' => $parent_id
+            ];
+            $category = Category::update($id, $data);
+            return $category;
         } catch (\Throwable $th) {
             return false;
         }

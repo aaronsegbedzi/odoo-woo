@@ -11,6 +11,7 @@ use Codexshaper\WooCommerce\Facades\Product;
 use Illuminate\Support\Facades\Log;
 use Codexshaper\WooCommerce\Facades\Variation;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\OdooCategory;
 
 class SyncWooProductVariables extends Command
 {
@@ -47,14 +48,13 @@ class SyncWooProductVariables extends Command
         $WooProducts = $WooProduct->getVariableProducts();
         $this->info('Woo Variable Products Fetched: ' . count($WooProducts));
 
-        //CATEGROIES//////////////////////////////////////////////////////////////////////////////////////////////////
+        //CATEGORIES/////////////////////////////////////////////////////////////////////////////////////////
         // Get the categories from Odoo.
-        $OdooCategories = [];
-        foreach ($OdooProducts as $OdooProduct) {
-            $OdooCategories[] = $OdooProduct['cat'];
-        }
-        $OdooCategories = array_values(array_map("unserialize", array_unique(array_map("serialize", $OdooCategories))));
+
+        $OdooCategory = new OdooCategory();
+        $OdooCategories = $OdooCategory->getCategories();
         $this->info('Odoo Categories Fetched: ' . count($OdooCategories));
+        // dd($OdooCategories);
 
         // Get the categories from WooCommerce.
         $WooCategory = new WooCategory();
@@ -64,12 +64,17 @@ class SyncWooProductVariables extends Command
         // Create Categories if not exist in WooCommerce.
         $array1_ids = array_column($OdooCategories, 1);
         $array2_ids = array_column($WooCategories, 1);
-        $CreateCategories = array_diff($array1_ids, $array2_ids);
-        if (count($CreateCategories) > 0) {
+        $diff = array_diff($array1_ids, $array2_ids);
+        // Filter array1 based on differences
+        $CreateCategories = array_filter($OdooCategories, function ($item) use ($diff) {
+            return in_array($item[1], $diff);
+        });
+
+        if (count($CreateCategories)) {
             $this->info('Creating ' . count($CreateCategories) . ' Categories in Woo.');
             foreach ($CreateCategories as $CreateCategory) {
-                $WooCategory->createCategory($CreateCategory);
-                $this->info('Created Category: ' . $CreateCategory);
+                $CreateCategory[5] = $WooCategory->createCategory($CreateCategory[1]);
+                $this->info('Created Category: ' . $CreateCategory[1]);
             }
             // Get the categories from WooCommerce.
             $WooCategory = new WooCategory();
@@ -83,7 +88,23 @@ class SyncWooProductVariables extends Command
             });
             return array_merge($item1, ...$matchingItems);
         }, $OdooCategories);
-        //CATEGROIES//////////////////////////////////////////////////////////////////////////////////////////////////
+
+        if (count($CreateCategories)) {
+            $this->info('Applying Parent Structure for ' . count($CreateCategories) . ' Categories in Woo.');
+            foreach ($CreateCategories as $CreateCategory) {
+                if ($CreateCategory[3] == true) {
+                    $woo_id = $this->searchArray(1, $CreateCategory[1], 5, $Categories);
+                    $parent_odoo_id = $this->searchArray(1, $CreateCategory[1], 4, $Categories);
+                    $parent_id = $this->searchArray(0, $parent_odoo_id, 5, $Categories);
+                    $WooCategory->setParentCatergory($woo_id, $parent_id);
+                }
+            }
+            // Get the categories from WooCommerce.
+            $WooCategory = new WooCategory();
+            $WooCategories = $WooCategory->getCategories();
+        }
+        
+        //CATEGORIES////////////////////////////////////////////////////////////////////////////////////////
 
         //BRANDS//////////////////////////////////////////////////////////////////////////////////////////////////////
             // Get the Brand from Odoo.
@@ -214,7 +235,7 @@ class SyncWooProductVariables extends Command
                     'short_description' => $controller->truncateString($Product['description']),
                     'categories' => [
                         [
-                            'id' => $Categories[$index][2]
+                            'id' => $Categories[$index][5]
                         ],
                     ],
                     'images' => [
@@ -350,7 +371,7 @@ class SyncWooProductVariables extends Command
                         'short_description' => $controller->truncateString($Product['description']),
                         'categories' => [
                             [
-                                'id' => $Categories[$index][2]
+                                'id' => $Categories[$index][5]
                             ],
                         ],
                         'images' => [
@@ -385,7 +406,7 @@ class SyncWooProductVariables extends Command
                         'short_description' => $controller->truncateString($Product['description']),
                         'categories' => [
                             [
-                                'id' => $Categories[$index][2]
+                                'id' => $Categories[$index][5]
                             ],
                         ],
                         'attributes' => [
