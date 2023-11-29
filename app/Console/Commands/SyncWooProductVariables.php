@@ -49,61 +49,60 @@ class SyncWooProductVariables extends Command
         $this->info('Woo Variable Products Fetched: ' . count($WooProducts));
 
         //CATEGORIES/////////////////////////////////////////////////////////////////////////////////////////
-        // Get the categories from Odoo.
+            // Get the categories from Odoo.
 
-        $OdooCategory = new OdooCategory();
-        $OdooCategories = $OdooCategory->getCategories();
-        $this->info('Odoo Categories Fetched: ' . count($OdooCategories));
-        // dd($OdooCategories);
+            $OdooCategory = new OdooCategory();
+            $OdooCategories = $OdooCategory->getCategories();
+            $this->info('Odoo Categories Fetched: ' . count($OdooCategories));
+            // dd($OdooCategories);
 
-        // Get the categories from WooCommerce.
-        $WooCategory = new WooCategory();
-        $WooCategories = $WooCategory->getCategories();
-        $this->info('Woo Categories Fetched: ' . count($WooCategories));
-
-        // Create Categories if not exist in WooCommerce.
-        $array1_ids = array_column($OdooCategories, 1);
-        $array2_ids = array_column($WooCategories, 1);
-        $diff = array_diff($array1_ids, $array2_ids);
-        // Filter array1 based on differences
-        $CreateCategories = array_filter($OdooCategories, function ($item) use ($diff) {
-            return in_array($item[1], $diff);
-        });
-
-        if (count($CreateCategories)) {
-            $this->info('Creating ' . count($CreateCategories) . ' Categories in Woo.');
-            foreach ($CreateCategories as $CreateCategory) {
-                $CreateCategory[5] = $WooCategory->createCategory($CreateCategory[1]);
-                $this->info('Created Category: ' . $CreateCategory[1]);
-            }
             // Get the categories from WooCommerce.
             $WooCategory = new WooCategory();
             $WooCategories = $WooCategory->getCategories();
-        }
+            $this->info('Woo Categories Fetched: ' . count($WooCategories));
 
-        // Merge Odoo and WooCommerce categories.
-        $Categories = array_map(function ($item1) use ($WooCategories) {
-            $matchingItems = array_filter($WooCategories, function ($item2) use ($item1) {
-                return $item2[1] === $item1[1];
+            // Create Categories if not exist in WooCommerce.
+            $array1_ids = array_column($OdooCategories, 1);
+            $array2_ids = array_column($WooCategories, 1);
+            $diff = array_diff($array1_ids, $array2_ids);
+            // Filter array1 based on differences
+            $CreateCategories = array_filter($OdooCategories, function ($item) use ($diff) {
+                return in_array($item[1], $diff);
             });
-            return array_merge($item1, ...$matchingItems);
-        }, $OdooCategories);
 
-        if (count($CreateCategories)) {
-            $this->info('Applying Parent Structure for ' . count($CreateCategories) . ' Categories in Woo.');
-            foreach ($CreateCategories as $CreateCategory) {
-                if ($CreateCategory[3] == true) {
-                    $woo_id = $this->searchArray(1, $CreateCategory[1], 5, $Categories);
-                    $parent_odoo_id = $this->searchArray(1, $CreateCategory[1], 4, $Categories);
-                    $parent_id = $this->searchArray(0, $parent_odoo_id, 5, $Categories);
-                    $WooCategory->setParentCatergory($woo_id, $parent_id);
+            if (count($CreateCategories)) {
+                $this->info('Creating ' . count($CreateCategories) . ' Categories in Woo.');
+                foreach ($CreateCategories as $CreateCategory) {
+                    $CreateCategory[5] = $WooCategory->createCategory($CreateCategory[1]);
+                    $this->info('Created Category: ' . $CreateCategory[1]);
                 }
+                // Get the categories from WooCommerce.
+                $WooCategory = new WooCategory();
+                $WooCategories = $WooCategory->getCategories();
             }
-            // Get the categories from WooCommerce.
-            $WooCategory = new WooCategory();
-            $WooCategories = $WooCategory->getCategories();
-        }
-        
+
+            // Merge Odoo and WooCommerce categories.
+            $Categories = array_map(function ($item1) use ($WooCategories) {
+                $matchingItems = array_filter($WooCategories, function ($item2) use ($item1) {
+                    return $item2[1] === $item1[1];
+                });
+                return array_merge($item1, ...$matchingItems);
+            }, $OdooCategories);
+
+            if (count($CreateCategories)) {
+                $this->info('Applying Parent Structure for ' . count($CreateCategories) . ' Categories in Woo.');
+                foreach ($CreateCategories as $CreateCategory) {
+                    if ($CreateCategory[3] == true) {
+                        $woo_id = $this->searchArray(1, $CreateCategory[1], 5, $Categories);
+                        $parent_odoo_id = $this->searchArray(1, $CreateCategory[1], 4, $Categories);
+                        $parent_id = $this->searchArray(0, $parent_odoo_id, 5, $Categories);
+                        $WooCategory->setParentCatergory($woo_id, $parent_id);
+                    }
+                }
+                // Get the categories from WooCommerce.
+                $WooCategory = new WooCategory();
+                $WooCategories = $WooCategory->getCategories();
+            }
         //CATEGORIES////////////////////////////////////////////////////////////////////////////////////////
 
         //BRANDS//////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -563,7 +562,7 @@ class SyncWooProductVariables extends Command
                 try {
                     $_batch = Variation::batch($Product['woo_id'], ['create' => $BatchCreateVariants, 'update' => $BatchUpdateVariants]);
                 } catch (\Exception $e) {
-                    $this->info('Failed to UPDATE: ' . $Product['name'] . ' REASON: ' . $e->getMessage());
+                    $this->info('Failed to UPDATE VARIANT: ' . $Product['name'] . ' REASON: ' . $e->getMessage());
                     break;
                 }
 

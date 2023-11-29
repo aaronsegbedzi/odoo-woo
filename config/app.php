@@ -190,6 +190,7 @@ return [
     'odoowoo_admin_email' => env('MAIL_NOTIFICATIONS','admin@cocoware.co.uk'),
     'odoowoo_sync_simple' => (bool) env('ODOOWOO_SYNC_SIMPLE_ENABLED', false),
     'odoowoo_sync_variable' => (bool) env('ODOOWOO_SYNC_VARIABLE_ENABLED', false),
+    'odoowoo_cron' => (bool) env('ODOOWOO_CRON_DEBUG', false),
     
     // OdooWoo POS SMS Settings
     'odoowoo_pos_sms' => (bool) env('ODOOWOO_POS_SMS_NOTIFICATIONS', false),
@@ -203,6 +204,9 @@ return [
     
     // OdooWoo Currency Settings
     'odoowoo_currency' => env('ODOOWOO_CURRENCY', 'GHS'),
+
+    // OdooWoo Pricelist Settings
+    'odoowoo_pricelist' => (int) env('ODOO_PRICELIST_ID', 0),
 
     // WooCommerce Settings
     'woo_sleep_seconds' => env('WOOCOMMERCE_BATCH_WAIT_TIME', 10),

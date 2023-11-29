@@ -23,6 +23,10 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
+        if (config('app.odoowoo_cron')) {
+            $schedule->command('woo:cron')->everyMinute();
+        }
+
         if (config('app.odoowoo_sync_simple')) {
             $schedule->command('woo:sync')
                 ->hourly()

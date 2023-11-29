@@ -180,16 +180,15 @@ class OdooProduct extends Controller
 
     private function getVariantCustomPrice($id)
     {
-
         sleep($this->odooSleepSeconds());
 
         $fields = array('id', 'fixed_price');
-        $criteria = array(array('product_id', '=', $id));
+        $criteria = array(array('product_id', '=', $id), array('pricelist_id', '=', config('app.odoowoo_pricelist')));
         try {
             $products = $this->client->search_read('product.pricelist.item', $criteria, $fields);
+            return $products[0]['fixed_price'];
         } catch (\Throwable $th) {
             throw $th;
         }
-        return $products[0]['fixed_price'];
     }
 }
