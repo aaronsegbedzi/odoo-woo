@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Log;
 use OdooClient\Client;
 
 class OdooProduct extends Controller
@@ -188,6 +189,7 @@ class OdooProduct extends Controller
             $products = $this->client->search_read('product.pricelist.item', $criteria, $fields);
             return $products[0]['fixed_price'];
         } catch (\Throwable $th) {
+            Log::info('Failed to get Variant Custom Price for Product Variant ID: ' . $id);
             throw $th;
         }
     }
