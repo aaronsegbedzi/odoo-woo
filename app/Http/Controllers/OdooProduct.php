@@ -186,10 +186,10 @@ class OdooProduct extends Controller
         $fields = array('id', 'fixed_price');
         $criteria = array(array('product_id', '=', $id), array('pricelist_id', '=', config('app.odoowoo_pricelist')));
         try {
+            Log::info('Failed to get Variant Custom Price for Product Variant ID: ' . $id);
             $products = $this->client->search_read('product.pricelist.item', $criteria, $fields);
             return $products[0]['fixed_price'];
         } catch (\Throwable $th) {
-            Log::info('Failed to get Variant Custom Price for Product Variant ID: ' . $id);
             throw $th;
         }
     }
