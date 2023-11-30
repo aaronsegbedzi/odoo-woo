@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Log;
 use OdooClient\Client;
 
 class OdooProduct extends Controller
@@ -133,9 +132,7 @@ class OdooProduct extends Controller
 
     private function getProductVariants($id)
     {
-        
         sleep($this->odooSleepSeconds());
-
         $payload = [];
         $fields = array('id', 'product_template_variant_value_ids', 'qty_available', 'list_price', 'pricelist_item_count', 'default_code');
         $criteria = array(array('product_tmpl_id', '=', $id));
@@ -151,19 +148,18 @@ class OdooProduct extends Controller
                 'sku' => $product['default_code'],
                 'image' => env('ODOO_IMG_VARIANT_URL', '') . '/' . $product['id'] . '.jpg',
                 'qty' => $product['qty_available'],
-                'price' => $product['pricelist_item_count'] > 0 ? $this->getVariantCustomPrice($product['id']) : $product['list_price'],
+                'price' => $product['pricelist_item_count'] > 0 ? $this->getVariantCustomPrice($product['id'], $product['list_price']) : $product['list_price'],
                 'att_name' => $variant['name'],
                 'att_value' => $variant['value']
             );
+            dd($product);
         }
         return $payload;
     }
 
     private function getVariantAttribute($id)
     {
-
         sleep($this->odooSleepSeconds());
-
         $payload = [];
         $fields = array('id', 'name', 'attribute_line_id');
         $criteria = array(array('id', '=', $id));
@@ -179,16 +175,17 @@ class OdooProduct extends Controller
         return $payload;
     }
 
-    private function getVariantCustomPrice($id)
+    private function getVariantCustomPrice($id, $list_price)
     {
         sleep($this->odooSleepSeconds());
-
         $fields = array('id', 'fixed_price');
         $criteria = array(array('product_id', '=', $id), array('pricelist_id', '=', config('app.odoowoo_pricelist')));
         try {
-            Log::info('Failed to get Variant Custom Price for Product Variant ID: ' . $id);
             $products = $this->client->search_read('product.pricelist.item', $criteria, $fields);
-            return $products[0]['fixed_price'];
+            if (!empty($products)) {
+                return $products[0]['fixed_price'];
+            }
+            return $list_price;
         } catch (\Throwable $th) {
             throw $th;
         }
