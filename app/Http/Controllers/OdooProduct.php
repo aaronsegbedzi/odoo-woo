@@ -152,7 +152,6 @@ class OdooProduct extends Controller
                 'att_name' => $variant['name'],
                 'att_value' => $variant['value']
             );
-            dd($product);
         }
         return $payload;
     }
